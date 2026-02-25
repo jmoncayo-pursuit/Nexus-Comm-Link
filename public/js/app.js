@@ -267,7 +267,7 @@ async function loadSnapshot(force = false) {
                 statsText.style.display = 'inline';
             }
 
-            // Toggle STOP mode logic directly on the Send button to match Antigravity
+            // Toggle STOP mode logic directly on the Send button to match Nexus core logic
             const isGenerating = data.stats.isGenerating;
             if (isGenerating) {
                 sendBtn.classList.add('stop-mode');

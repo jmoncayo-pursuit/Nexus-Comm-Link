@@ -27,7 +27,7 @@ Start Nexus with the remote debugging port enabled:
 
 **Option B: Manual Command**
 ```bash
-antigravity . --remote-debugging-port=9000
+nexus . --remote-debugging-port=9000
 ```
 
 ### Step 2: Open or Start a Chat
@@ -136,7 +136,7 @@ Since macOS requires Automator for context menu entries, follow these steps manu
 6.  Paste this script:
     ```bash
     cd "$1"
-    antigravity . --remote-debugging-port=9000
+    nexus . --remote-debugging-port=9000
     ```
 7.  **Save** the Quick Action with a name like `Open with Nexus (Debug)`.
 8.  Now you can right-click any folder in Finder → **Quick Actions → Open with Nexus (Debug)**.
