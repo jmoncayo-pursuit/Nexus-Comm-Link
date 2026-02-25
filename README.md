@@ -1,10 +1,10 @@
 # Nexus Comm-Link 📱
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Nexus Comm-Link** is a high-performance, tactical neural relay for your AI sessions. Developed as a core component of the *Nexus Command Lab* experiments, it provides a permanent, real-time bridge between your desktop environment and your mobile device, ensuring full situational awareness and control from anywhere.
+**Nexus Comm-Link** is a high-performance mobile bridge that provides a real-time connection between your desktop IDE and mobile device. By leveraging direct DOM mirroring, it enables seamless remote monitoring and control without the limitations of traditional browser extensions.
 
-> 🛠️ **Status**: An essential offshoot of the Nexus Command Lab experiments, now integrated into the standard development process.
+> 🛠️ **Status**: A core component for enabling flexible, mobile-friendly development workflows.
 
 ---
 

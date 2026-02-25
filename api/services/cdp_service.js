@@ -1,0 +1,103 @@
+import http from 'http';
+import WebSocket from 'ws';
+
+const PORTS = [9000, 9001, 9002, 9003];
+
+// Helper: HTTP GET JSON
+export function getJson(url) {
+    return new Promise((resolve, reject) => {
+        http.get(url, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+            });
+        }).on('error', reject);
+    });
+}
+
+// Find Nexus CDP endpoint
+export async function discoverCDP() {
+    const errors = [];
+    for (const port of PORTS) {
+        try {
+            const list = await getJson(`http://127.0.0.1:${port}/json/list`);
+
+            // Priority 1: Main Workbench — this has the actual chat DOM (#conversation)
+            const workbench = list.find(t =>
+                t.type === 'page' &&
+                t.url?.includes('workbench.html') &&
+                !t.url?.includes('jetski')
+            );
+            if (workbench && workbench.webSocketDebuggerUrl) {
+                console.log('✅ Found Workbench (chat DOM) target:', workbench.title);
+                return { port, url: workbench.webSocketDebuggerUrl };
+            }
+
+            // Priority 2: Jetski/Launchpad (fallback)
+            const jetski = list.find(t => t.url?.includes('jetski') || t.title === 'Launchpad');
+            if (jetski && jetski.webSocketDebuggerUrl) {
+                console.log('🔧 Found Jetski/Launchpad target:', jetski.title);
+                return { port, url: jetski.webSocketDebuggerUrl };
+            }
+
+            // Priority 3: Any page
+            const generic = list.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+            if (generic) {
+                console.log('⚠️ Found generic page target:', generic.title);
+                return { port, url: generic.webSocketDebuggerUrl };
+            }
+        } catch (e) {
+            errors.push(`${port}: ${e.message}`);
+        }
+    }
+    const errorSummary = errors.length ? `Errors: ${errors.join(', ')}` : 'No ports responding';
+    throw new Error(`CDP not found. ${errorSummary}`);
+}
+
+// Connect to CDP
+export async function connectCDP(url) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(url);
+        let id = 0;
+        const pendingCalls = new Map();
+
+        ws.on('open', () => {
+            console.log('✅ Connected to Nexus CDP');
+
+            // Expose a clean .call() method
+            ws.call = (method, params) => {
+                return new Promise((res, rej) => {
+                    const messageId = ++id;
+                    const payload = JSON.stringify({ id: messageId, method, params });
+
+                    const timeout = setTimeout(() => {
+                        pendingCalls.delete(messageId);
+                        rej(new Error(`CDP Call Timeout (${method})`));
+                    }, 30000);
+
+                    pendingCalls.set(messageId, { res, rej, timeout });
+                    ws.send(payload);
+                });
+            };
+
+            resolve(ws);
+        });
+
+        ws.on('message', (data) => {
+            try {
+                const response = JSON.parse(data);
+                if (response.id && pendingCalls.has(response.id)) {
+                    const { res, rej, timeout } = pendingCalls.get(response.id);
+                    clearTimeout(timeout);
+                    pendingCalls.delete(response.id);
+                    if (response.error) rej(response.error);
+                    else res(response.result);
+                }
+            } catch (e) { /* Notification or malformed */ }
+        });
+
+        ws.on('error', reject);
+        ws.on('close', () => console.log('❌ CDP connection closed'));
+    });
+}

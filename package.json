@@ -2,7 +2,7 @@
     "name": "nexus-comm-link",
     "version": "2.1.0",
     "type": "module",
-    "description": "Mobile web interface for monitoring Nexus chat via visual snapshots",
+    "description": "A high-performance mobile bridge for real-time monitoring and remote control of desktop development sessions.",
     "scripts": {
         "start": "node server.js",
         "dev": "node server.js"

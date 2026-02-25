@@ -15,17 +15,14 @@ nexus_mobile_connect/
 ├── certs/                          # SSL certificates directory (auto-generated, gitignored)
 │   ├── server.key                  # Private key
 │   └── server.cert                 # Self-signed certificate
-├── start_ag_phone_connect.bat      # Standard Windows launcher (LAN)
-├── start_ag_phone_connect_web.bat  # Web Windows launcher (Starts server + Global Tunnel)
-├── start_ag_phone_connect.sh       # Standard Mac/Linux launcher (LAN)
-├── start_ag_phone_connect_web.sh   # Web Mac/Linux launcher (Starts server + Global Tunnel)
-├── install_context_menu.bat        # Windows Context Menu installer/manager
-├── install_context_menu.sh         # Linux Context Menu installer (Creates .desktop files)
+├── start_nexus_connect.sh       # Standard Mac/Linux launcher (LAN)
+├── start_nexus_connect_web.sh   # Web Mac/Linux launcher (Starts server + Global Tunnel)
+├── install_context_menu.sh         # Linux Context Menu installer
 ├── launcher.py                     # Unified Python launcher (Manages Server, Tunnel, QR Codes)
 ├── .env                            # Local configuration (Passwords & API Tokens - gitignored)
 ├── .env.example                    # Template for environment variables
 ├── package.json                    # Dependencies and metadata
-├── LICENSE                         # GPL v3 License
+├── LICENSE                         # MIT License
 └── README.md                       # Quick-start guide
 ```
 
@@ -188,16 +185,16 @@ The server automatically detects SSL certificates and enables HTTPS:
 
 ### Synchronization Philosophy: "Mobile-as-Primary"
 The system utilizes a unidirectional Primary-Follower architecture for state management when active:
-- **Interaction Priority**: The mobile device is treated as the **Primary Controller**. Any manual interaction (scrolling, clicking, typing) on the mobile triggers an immediate CDP command to the Desktop.
-- **Scroll Synchronization**: Synchronization is strictly **Mobile → Desktop**. This design choice prevents "sync-fighting" conflicts and allows the mobile user to maintain a stable viewport regardless of background window movement on the Desktop.
-- **Operational Balance**:
-    - **Lock Duration**: A `3000ms` lock is applied when the user touches the mobile screen, protecting the mobile viewport from auto-scroll triggers caused by incoming message events.
-    - **Idle State**: After `5000ms` of inactivity, the mobile enters an "Observation Mode" where it allows auto-scrolling to follow new incoming content.
+1.  **Interaction Priority**: The mobile device is treated as the **Primary Controller**. Any manual interaction (scrolling, clicking, typing) on the mobile triggers an immediate CDP command to the Desktop.
+2.  **Scroll Synchronization**: Synchronization is strictly **Mobile → Desktop**. This design choice prevents "sync-fighting" conflicts and allows the mobile user to maintain a stable viewport regardless of background window movement on the Desktop.
+3.  **Operational Balance**:
+    *   **Lock Duration**: A `10000ms` lock is applied when the user touches the mobile screen, protecting the mobile viewport from auto-scroll triggers caused by incoming message events.
+    *   **Idle State**: After `5000ms` of inactivity, the mobile enters an "Observation Mode" where it allows auto-scrolling to follow new incoming content.
 
 ### Performance & Processing Efficiency
-- **Snapshot Polling**: The server polls the session CDP endpoint every `1000ms` to check for UI changes.
-- **Delta Detection**: To minimize processing pressure, the system calculates a 36-char hash of the captured HTML. A full broadcast (Snapshot Update) ONLY occurs if the hash changes.
-- **Interaction Overhead**: Typical POST interactions (sending a message or changing a setting) have a latency overhead of `<100ms`, making the remote interaction feel near-instant.
+1.  **Snapshot Polling**: The server polls the session CDP endpoint every `1000ms` to check for UI changes.
+2.  **Delta Detection**: To minimize processing pressure, the system calculates a 36-char hash of the captured HTML. A full broadcast (Snapshot Update) ONLY occurs if the hash changes.
+3.  **Interaction Overhead**: Typical POST interactions (sending a message or changing a setting) have a latency overhead of `<100ms`, making the remote interaction feel near-instant.
 
 ### Snapshot Cleanup & Interaction Filtering
 To ensure a clean "Observation Mode" on mobile, the server performs an aggressive cleanup of the captured DOM before sending it to the client:

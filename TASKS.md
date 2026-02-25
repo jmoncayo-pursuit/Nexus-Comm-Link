@@ -4,7 +4,7 @@ This document tracks the evolution of the Nexus Comm-Link from a "lab experiment
 
 ## 🎯 Immediate Intentions (Next Session)
 
-### 🧩 Neural Interface Refinement
+### 🧩 Mobile UI Refinement
 - [ ] **Reading Thoughts**: Implement a specialized, high-readability expansion mode for "Thought" blocks to make deep-thinking sessions easier to follow on mobile.
 - [ ] **Accept Files Button**: Implement a remote click-relay for the "Accept" or "Apply" buttons in file blocks, allowing for one-tap deployment of AI-written code.
 
@@ -22,7 +22,8 @@ This document tracks the evolution of the Nexus Comm-Link from a "lab experiment
 
 ## ✅ Completed Milestones
 - [x] **Project Rebranding**: Success transition to "Nexus Comm-Link".
-- [x] **Nexus Context Relay**: Implementation of the "Couple Context" tactical header for logs and command results.
-- [x] **Nuclear Icon & Copy Purge**: Total removal of desktop artifacts and ghost system controls.
-- [x] **Neural Notification Layer**: Toast notifications for system status and coupling feedback.
+- [x] **Elite DX Refactoring**: Full architectural decomposition of `server.js` monolith (2300 lines) into Service/Route pattern (SRP compliant).
+- [x] **Context Relay**: Implementation of the status header for logs and command results.
+- [x] **Clean Snapshot Logic**: Removal of desktop artifacts and unnecessary UI elements.
+- [x] **Notification Layer**: Toast notifications for system status and connectivity feedback.
 - [x] **Cache-Busting (v2.1)**: Enforced update protocol for mobile browsers.
