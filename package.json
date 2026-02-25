@@ -1,0 +1,22 @@
+{
+    "name": "nexus-comm-link",
+    "version": "2.1.0",
+    "type": "module",
+    "description": "Mobile web interface for monitoring Nexus chat via visual snapshots",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "compression": "^1.8.1",
+        "cookie-parser": "^1.4.7",
+        "dotenv": "^16.4.7",
+        "express": "^4.18.2",
+        "ws": "^8.18.0"
+    },
+    "author": "Jean Moncayo",
+    "license": "MIT",
+    "engines": {
+        "node": ">=16.0.0"
+    }
+}
