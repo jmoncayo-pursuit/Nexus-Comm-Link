@@ -1,5 +1,31 @@
+import net from 'net';
 import os from 'os';
 import { execSync } from 'child_process';
+
+// Check if a port is listening
+export function isPortOpen(port, host = '127.0.0.1') {
+    return new Promise((resolve) => {
+        const socket = new net.Socket();
+        const timeout = setTimeout(() => {
+            socket.destroy();
+            resolve(false);
+        }, 300);
+
+        socket.on('connect', () => {
+            clearTimeout(timeout);
+            socket.destroy();
+            resolve(true);
+        });
+
+        socket.on('error', () => {
+            clearTimeout(timeout);
+            socket.destroy();
+            resolve(false);
+        });
+
+        socket.connect(port, host);
+    });
+}
 
 // Kill any existing process on the server port (prevents EADDRINUSE)
 export function killPortProcess(port) {

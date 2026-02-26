@@ -210,10 +210,10 @@ async function loadSnapshot(force = false) {
                     } else {
                         showEmptyState();
                     }
-                    updateBootServerStatus(data.cdpConnected);
+                    updateBootServerStatus(data.cdpConnected, data.apiConnected);
                 } else {
                     const data = await response.json().catch(() => ({}));
-                    updateBootServerStatus(data.cdpConnected);
+                    updateBootServerStatus(data.cdpConnected, data.apiConnected);
                 }
 
                 return;
@@ -225,7 +225,7 @@ async function loadSnapshot(force = false) {
         chatIsOpen = true;
 
         const data = await response.json();
-        updateBootServerStatus(data.cdpConnected);
+        updateBootServerStatus(data.cdpConnected, data.apiConnected);
 
         const scrollPos = chatContainer.scrollTop;
         const scrollHeight = chatContainer.scrollHeight;
@@ -1378,21 +1378,28 @@ modelBtn.addEventListener('click', () => {
         }
     });
 });
-function updateBootServerStatus(connected) {
+function updateBootServerStatus(cdpConnected, apiConnected) {
     const textSpan = document.getElementById('bootServerText');
     const bootBtn = document.getElementById('bootServerBtn');
     if (!textSpan || !bootBtn) return;
 
-    if (connected) {
+    if (apiConnected) {
         textSpan.innerText = 'SERVER ON';
         bootBtn.style.color = '#10b981'; // Green
         bootBtn.style.borderColor = '#10b981';
+        bootBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+    } else if (cdpConnected) {
+        textSpan.innerText = 'IDE LINKED';
+        bootBtn.style.color = '#34d399'; // Emerald
+        bootBtn.style.borderColor = '#34d399';
+        bootBtn.style.background = 'transparent';
     } else {
         // Only reset if it's not currently "BOOTING..."
         if (textSpan.innerText !== 'BOOTING...') {
             textSpan.innerText = 'BOOT SERVER';
             bootBtn.style.color = 'var(--accent)';
             bootBtn.style.borderColor = 'var(--accent)';
+            bootBtn.style.background = 'transparent';
         }
     }
 }

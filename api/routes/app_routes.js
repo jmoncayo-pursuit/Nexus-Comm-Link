@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
 import * as NexusService from '../services/nexus_service.js';
 import { inspectUI } from '../../ui_inspector.js';
+import { isPortOpen } from '../services/utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,18 +30,21 @@ export function createRoutes(bridgeService, appPassword, authToken, authCookieNa
     });
 
     // Snapshot
-    router.get('/snapshot', (req, res) => {
+    router.get('/snapshot', async (req, res) => {
         const snapshot = bridgeService.getLastSnapshot();
         const cdp = bridgeService.getConnection();
-        if (!snapshot) return res.status(503).json({ error: 'No snapshot available', cdpConnected: !!cdp });
-        res.json({ ...snapshot, cdpConnected: !!cdp });
+        const apiAlive = await isPortOpen(8000);
+        if (!snapshot) return res.status(503).json({ error: 'No snapshot available', cdpConnected: !!cdp, apiConnected: apiAlive });
+        res.json({ ...snapshot, cdpConnected: !!cdp, apiConnected: apiAlive });
     });
 
     // Health
-    router.get('/health', (req, res) => {
+    router.get('/health', async (req, res) => {
+        const apiAlive = await isPortOpen(8000);
         res.json({
             status: 'ok',
             cdpConnected: !!bridgeService.getConnection(),
+            apiConnected: apiAlive,
             uptime: process.uptime(),
             timestamp: new Date().toISOString()
         });
