@@ -249,22 +249,15 @@ async function loadSnapshot(force = false) {
         // or at the bottom (reading live messages), UNLESS forced by refresh button.
         if (!isNearBottom && !isNearTop && !isFirstLoad && !force) {
             pendingSnapshotData = data;
-            if (data.stats) {
-                const kbs = Math.round((data.stats.htmlSize + data.stats.cssSize) / 1024);
-                const statsEl = document.getElementById('statsText');
-                if (statsEl) {
-                    statsEl.textContent = `${data.stats.nodes} N · ${kbs}KB`;
-                    statsEl.style.display = 'inline';
-                }
-            }
-            // Even if we don't update the chat DOM, update the Send button status
-            if (data.stats.isGenerating) {
+            // update the Send button status even if we don't update the chat DOM
+            if (data.stats && data.stats.isGenerating) {
                 sendBtn.classList.add('stop-mode');
                 sendBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" style="fill: currentColor; stroke: currentColor; stroke-width: 2;" /></svg>`;
-            } else {
+            } else if (data.stats) {
                 sendBtn.classList.remove('stop-mode');
                 sendBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" style="fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;" /></svg>`;
             }
+            return;
             return;
         }
 
@@ -286,14 +279,6 @@ async function loadSnapshot(force = false) {
 
         // --- Proceed with full update ---
         if (data.stats) {
-            const kbs = Math.round((data.stats.htmlSize + data.stats.cssSize) / 1024);
-            const nodes = data.stats.nodes;
-            const statsText = document.getElementById('statsText');
-            if (statsText) {
-                statsText.textContent = `${nodes} N · ${kbs}KB`;
-                statsText.style.display = 'inline';
-            }
-
             // Toggle STOP mode logic directly on the Send button to match Nexus core logic
             const isGenerating = data.stats.isGenerating;
             if (isGenerating) {
