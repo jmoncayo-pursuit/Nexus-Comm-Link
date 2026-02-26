@@ -1390,19 +1390,21 @@ function updateBootServerStatus(cdpConnected, apiConnected) {
 
     lastApiStatus = apiConnected;
 
-    // 1. Update the Main "SERVER ON" Button (Port 8000)
+    // 1. Update the Main Toggle Button (Port 8000)
     if (apiConnected) {
         textSpan.innerText = 'SERVER ON';
-        bootBtn.style.color = '#10b981'; // Green
+        bootBtn.style.color = '#10b981'; // Success Green
         bootBtn.style.borderColor = '#10b981';
         bootBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+        bootBtn.style.opacity = '1';
     } else {
-        // Only reset if it's not currently "BOOTING..."
-        if (textSpan.innerText !== 'BOOTING...') {
-            textSpan.innerText = 'BOOT SERVER';
-            bootBtn.style.color = 'var(--accent)';
-            bootBtn.style.borderColor = 'var(--accent)';
-            bootBtn.style.background = 'transparent';
+        // Only reset if it's not currently "BOOTING..." or "STOPPING..."
+        if (textSpan.innerText !== 'BOOTING...' && textSpan.innerText !== 'STOPPING...') {
+            textSpan.innerText = 'START SERVER';
+            bootBtn.style.color = 'rgba(255, 255, 255, 0.4)'; // Muted/OFF look
+            bootBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            bootBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+            bootBtn.style.opacity = '0.7';
         }
     }
 
@@ -1426,30 +1428,23 @@ bootServerBtn.addEventListener('click', async () => {
         const textSpan = document.getElementById('bootServerText');
 
         if (lastApiStatus) {
-            // Server is ON, we want to STOP it
+            // Toggle Logic: STOP the server
             if (textSpan) textSpan.innerText = 'STOPPING...';
             const res = await fetchWithAuth('/stop-server', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                setTimeout(() => { if (textSpan) textSpan.innerText = 'STOPPED'; }, 1000);
-            } else {
-                if (textSpan) textSpan.innerText = 'ERROR';
-            }
+            await res.json();
         } else {
-            // Server is OFF, we want to START it
+            // Toggle Logic: START the server
             if (textSpan) textSpan.innerText = 'BOOTING...';
             const res = await fetchWithAuth('/boot-server', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                setTimeout(() => { if (textSpan) textSpan.innerText = 'BOOTED'; }, 1000);
-            } else {
-                if (textSpan) textSpan.innerText = 'ERROR';
-            }
+            await res.json();
         }
     } catch (e) {
         console.error(e);
         const textSpan = document.getElementById('bootServerText');
-        if (textSpan) textSpan.innerText = 'ERROR';
+        if (textSpan) {
+            textSpan.innerText = 'ERROR';
+            setTimeout(() => { updateBootServerStatus(false, lastApiStatus); }, 2000);
+        }
     }
 });
 
