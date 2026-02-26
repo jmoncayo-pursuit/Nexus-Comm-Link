@@ -1,7 +1,7 @@
 import http from 'http';
 import WebSocket from 'ws';
 
-const PORTS = [9000, 9001, 9002, 9003];
+const PORTS = [56991, 9000, 9001, 9002, 9003];
 
 // Helper: HTTP GET JSON
 export function getJson(url) {
@@ -87,7 +87,7 @@ export async function connectCDP(url) {
                 await ws.call('Runtime.enable', {});
                 // Small delay for contexts to populate
                 await new Promise(r => setTimeout(r, 500));
-                
+
                 // Try to get the default context by evaluating a simple expression
                 try {
                     const testResult = await ws.call('Runtime.evaluate', {

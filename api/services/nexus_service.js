@@ -497,10 +497,16 @@ export async function getChatHistory(cdp) {
             let panel = search?.parentElement;
             for(let i=0; i<10 && panel; i++) { if(panel.offsetHeight > 100) break; panel = panel.parentElement; }
             if (!panel) return { error: 'Panel not found', chats: [] };
+            
+            const timeHeaders = /^(today|yesterday|previous|last|(\\d+\\s*(min|hr|day|wk|mo)s?\\s*ago))$/i;
             const chats = []; const seen = new Set();
             for (const span of panel.querySelectorAll('span')) {
                 const text = span.textContent.trim();
+                // Filter out: short text, duplicates, grouping headers like "Recent In", 
+                // and temporal separators like "Today", "3 mins ago"
                 if (text.length < 3 || seen.has(text) || text.toLowerCase().includes('recent in')) continue;
+                if (timeHeaders.test(text)) continue;
+                
                 seen.add(text); chats.push({ title: text, date: 'Recent' });
                 if (chats.length >= 50) break;
             }
