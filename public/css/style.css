@@ -473,12 +473,18 @@ body {
 }
 
 .status-dot.connected {
-    background: var(--success);
-    box-shadow: 0 0 8px var(--success);
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+}
+
+.status-dot.searching {
+    background: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
 }
 
 .status-dot.disconnected {
-    background: var(--warning);
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
 }
 
 /* Chat Container */

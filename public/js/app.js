@@ -30,6 +30,7 @@ const attachmentIndicator = document.getElementById('attachmentIndicator');
 // --- State ---
 let isFirstLoad = true;
 let lastApiStatus = false;
+let lastCdpStatus = false;
 let autoRefreshEnabled = true;
 let userIsScrolling = false;
 let userScrollLockUntil = 0; // Timestamp until which we respect user scroll
@@ -146,7 +147,7 @@ function connectWebSocket() {
 
     ws.onopen = () => {
         console.log('WS Connected');
-        updateStatus(true);
+        updateStatus(true, lastCdpStatus);
         loadSnapshot();
     };
 
@@ -166,20 +167,24 @@ function connectWebSocket() {
 
     ws.onclose = () => {
         console.log('WS Disconnected');
-        updateStatus(false);
+        updateStatus(false, false);
         setTimeout(connectWebSocket, 2000);
     };
 }
 
-function updateStatus(connected) {
-    if (connected) {
-        statusDot.classList.remove('disconnected');
+function updateStatus(wsConnected, cdpConnected) {
+    // 1. Update the 'Neural Link' Dot
+    statusDot.classList.remove('connected', 'searching', 'disconnected');
+
+    if (!wsConnected) {
+        statusDot.classList.add('disconnected');
+        statusText.textContent = 'Offline';
+    } else if (!cdpConnected) {
+        statusDot.classList.add('searching');
+        statusText.textContent = 'Searching...';
+    } else {
         statusDot.classList.add('connected');
         statusText.textContent = 'Live';
-    } else {
-        statusDot.classList.remove('connected');
-        statusDot.classList.add('disconnected');
-        statusText.textContent = 'Reconnecting';
     }
 }
 
@@ -1385,10 +1390,13 @@ modelBtn.addEventListener('click', () => {
 function updateBootServerStatus(cdpConnected, apiConnected) {
     const textSpan = document.getElementById('bootServerText');
     const bootBtn = document.getElementById('bootServerBtn');
-    const ideStatusSpan = document.getElementById('ideStatus');
     if (!textSpan || !bootBtn) return;
 
     lastApiStatus = apiConnected;
+    lastCdpStatus = cdpConnected;
+
+    // Refresh Neural Link Dot (Live indicator)
+    updateStatus(true, cdpConnected);
 
     // 1. Update the Main Toggle Button (Port 8000)
     if (apiConnected) {
@@ -1405,21 +1413,6 @@ function updateBootServerStatus(cdpConnected, apiConnected) {
             bootBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
             bootBtn.style.background = 'rgba(255, 255, 255, 0.05)';
             bootBtn.style.opacity = '0.7';
-        }
-    }
-
-    // 2. Update the IDE Link Status (next to "Live" indicator)
-    if (ideStatusSpan) {
-        if (cdpConnected) {
-            ideStatusSpan.innerText = 'IDE: LINKED';
-            ideStatusSpan.style.color = '#34d399'; // Emerald
-            ideStatusSpan.style.opacity = '1';
-            ideStatusSpan.style.display = 'inline';
-        } else {
-            ideStatusSpan.innerText = 'IDE: OFFLINE';
-            ideStatusSpan.style.color = 'inherit';
-            ideStatusSpan.style.opacity = '0.4';
-            ideStatusSpan.style.display = 'inline';
         }
     }
 }
