@@ -1,7 +1,7 @@
 import http from 'http';
 import WebSocket from 'ws';
 
-const PORTS = [56991, 9000, 9001, 9002, 9003];
+const PORTS = [9000, 56991, 9001, 9002, 9003];
 
 // Helper: HTTP GET JSON
 export function getJson(url) {
@@ -18,41 +18,58 @@ export function getJson(url) {
 
 // Find Nexus CDP endpoint
 export async function discoverCDP() {
-    const errors = [];
+    const listResults = [];
+
+    // First, gather all lists from all active ports
     for (const port of PORTS) {
         try {
             const list = await getJson(`http://127.0.0.1:${port}/json/list`);
-
-            // Priority 1: Main Workbench — this has the actual chat DOM (#conversation)
-            const workbench = list.find(t =>
-                t.type === 'page' &&
-                t.url?.includes('workbench.html') &&
-                !t.url?.includes('jetski')
-            );
-            if (workbench && workbench.webSocketDebuggerUrl) {
-                console.log('✅ Found Workbench (chat DOM) target:', workbench.title);
-                return { port, url: workbench.webSocketDebuggerUrl };
-            }
-
-            // Priority 2: Jetski/Launchpad (fallback)
-            const jetski = list.find(t => t.url?.includes('jetski') || t.title === 'Launchpad');
-            if (jetski && jetski.webSocketDebuggerUrl) {
-                console.log('🔧 Found Jetski/Launchpad target:', jetski.title);
-                return { port, url: jetski.webSocketDebuggerUrl };
-            }
-
-            // Priority 3: Any page
-            const generic = list.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
-            if (generic) {
-                console.log('⚠️ Found generic page target:', generic.title);
-                return { port, url: generic.webSocketDebuggerUrl };
-            }
+            listResults.push({ port, list });
         } catch (e) {
-            errors.push(`${port}: ${e.message}`);
+            // Port not open or no JSON list
         }
     }
-    const errorSummary = errors.length ? `Errors: ${errors.join(', ')}` : 'No ports responding';
-    throw new Error(`CDP not found. ${errorSummary}`);
+
+    if (listResults.length === 0) {
+        throw new Error(`CDP not found. No debug ports responding (${PORTS.join(', ')})`);
+    }
+
+    // Priority 1: Main Workbench (Chat DOM) - Search all ports first
+    for (const { port, list } of listResults) {
+        const workbench = list.find(t =>
+            t.type === 'page' &&
+            t.url?.includes('workbench.html') &&
+            !t.url?.includes('jetski')
+        );
+        if (workbench && workbench.webSocketDebuggerUrl) {
+            console.log(`✅ [Port ${port}] Found Workbench target:`, workbench.title);
+            return { port, url: workbench.webSocketDebuggerUrl };
+        }
+    }
+
+    // Priority 2: Jetski/Launchpad - Search all ports next
+    for (const { port, list } of listResults) {
+        const jetski = list.find(t => t.url?.includes('jetski') || t.title === 'Launchpad');
+        if (jetski && jetski.webSocketDebuggerUrl) {
+            console.log(`🔧 [Port ${port}] Found Jetski/Launchpad target:`, jetski.title);
+            return { port, url: jetski.webSocketDebuggerUrl };
+        }
+    }
+
+    // Priority 3: Any non-viewer page
+    for (const { port, list } of listResults) {
+        const generic = list.find(t =>
+            t.type === 'page' &&
+            t.webSocketDebuggerUrl &&
+            !t.url?.includes('localhost:5173') // Avoid connecting back to the viewer UI itself
+        );
+        if (generic) {
+            console.log(`⚠️ [Port ${port}] Found generic page target:`, generic.title);
+            return { port, url: generic.webSocketDebuggerUrl };
+        }
+    }
+
+    throw new Error('CDP found ports but no suitable Page target detected.');
 }
 
 // Connect to CDP
