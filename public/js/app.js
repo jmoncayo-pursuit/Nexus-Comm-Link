@@ -1406,13 +1406,14 @@ function updateBootServerStatus(cdpConnected, apiConnected) {
         bootBtn.style.background = 'rgba(16, 185, 129, 0.1)';
         bootBtn.style.opacity = '1';
     } else {
-        // Only reset if it's not currently "BOOTING..." or "STOPPING..."
-        if (textSpan.innerText !== 'BOOTING...' && textSpan.innerText !== 'STOPPING...') {
+        // Reset to START SERVER if we are not currently booting.
+        // This ensures STOPPING... clears as soon as the sensor confirms the port is closed.
+        if (textSpan.innerText !== 'BOOTING...') {
             textSpan.innerText = 'START SERVER';
-            bootBtn.style.color = 'rgba(255, 255, 255, 0.4)'; // Muted/OFF look
-            bootBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            bootBtn.style.background = 'rgba(255, 255, 255, 0.05)';
-            bootBtn.style.opacity = '0.7';
+            bootBtn.style.color = 'var(--accent)';
+            bootBtn.style.borderColor = 'rgba(34, 211, 238, 0.4)';
+            bootBtn.style.background = 'rgba(34, 211, 238, 0.05)';
+            bootBtn.style.opacity = '1';
         }
     }
 }

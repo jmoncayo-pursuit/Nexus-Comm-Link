@@ -10,7 +10,7 @@ export class BridgeService {
         this.lastSnapshot = null;
         this.lastSnapshotHash = null;
         this.isConnecting = false;
-        this.pollInterval = 2500;
+        this.pollInterval = 1500;
         this.lastErrorLog = 0;
         this.lastApiState = false;
         this.lastCdpState = false;
