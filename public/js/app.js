@@ -1381,18 +1381,15 @@ modelBtn.addEventListener('click', () => {
 function updateBootServerStatus(cdpConnected, apiConnected) {
     const textSpan = document.getElementById('bootServerText');
     const bootBtn = document.getElementById('bootServerBtn');
+    const ideStatusSpan = document.getElementById('ideStatus');
     if (!textSpan || !bootBtn) return;
 
+    // 1. Update the Main "SERVER ON" Button (Port 8000)
     if (apiConnected) {
         textSpan.innerText = 'SERVER ON';
         bootBtn.style.color = '#10b981'; // Green
         bootBtn.style.borderColor = '#10b981';
         bootBtn.style.background = 'rgba(16, 185, 129, 0.1)';
-    } else if (cdpConnected) {
-        textSpan.innerText = 'IDE LINKED';
-        bootBtn.style.color = '#34d399'; // Emerald
-        bootBtn.style.borderColor = '#34d399';
-        bootBtn.style.background = 'transparent';
     } else {
         // Only reset if it's not currently "BOOTING..."
         if (textSpan.innerText !== 'BOOTING...') {
@@ -1400,6 +1397,21 @@ function updateBootServerStatus(cdpConnected, apiConnected) {
             bootBtn.style.color = 'var(--accent)';
             bootBtn.style.borderColor = 'var(--accent)';
             bootBtn.style.background = 'transparent';
+        }
+    }
+
+    // 2. Update the IDE Link Status (next to "Live" indicator)
+    if (ideStatusSpan) {
+        if (cdpConnected) {
+            ideStatusSpan.innerText = 'IDE: LINKED';
+            ideStatusSpan.style.color = '#34d399'; // Emerald
+            ideStatusSpan.style.opacity = '1';
+            ideStatusSpan.style.display = 'inline';
+        } else {
+            ideStatusSpan.innerText = 'IDE: OFFLINE';
+            ideStatusSpan.style.color = 'inherit';
+            ideStatusSpan.style.opacity = '0.4';
+            ideStatusSpan.style.display = 'inline';
         }
     }
 }
