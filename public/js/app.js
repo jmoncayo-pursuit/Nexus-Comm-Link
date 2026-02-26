@@ -9,6 +9,7 @@ const statusText = document.getElementById('statusText');
 
 const newChatBtn = document.getElementById('newChatBtn');
 const historyBtn = document.getElementById('historyBtn');
+const undoBtn = document.getElementById('undoBtn');
 
 let lastCssText = '';
 let lastHtmlHash = '';
@@ -1411,6 +1412,24 @@ bootServerBtn.addEventListener('click', async () => {
         console.error(e);
         const textSpan = document.getElementById('bootServerText');
         if (textSpan) textSpan.innerText = 'ERROR';
+    }
+});
+
+undoBtn.addEventListener('click', async () => {
+    try {
+        undoBtn.disabled = true;
+        showToast('EXECUTING UNDO...', 'info');
+        const res = await fetchWithAuth('/undo', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showToast('UNDO SUCCESSFUL', 'success');
+        } else {
+            showToast('UNDO FAILED', 'error');
+        }
+    } catch (e) {
+        showToast('UNDO ERROR', 'error');
+    } finally {
+        undoBtn.disabled = false;
     }
 });
 

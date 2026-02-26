@@ -1419,3 +1419,36 @@ textarea::-webkit-scrollbar {
     color: var(--success);
     box-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
 }
+/* Undo Button */
+.undo-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.undo-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.1);
+}
+
+.undo-btn:active {
+    transform: scale(0.9) rotate(-45deg);
+    color: var(--accent);
+}
+
+.undo-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    fill: none;
+}

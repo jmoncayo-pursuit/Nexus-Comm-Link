@@ -559,3 +559,52 @@ export async function getAppState(cdp) {
     }
     return { mode: 'Unknown', model: 'Unknown' };
 }
+
+export async function triggerUndo(cdp) {
+    // 1. First try to find a physical Undo/Discard button in the chat UI
+    const BTN_EXP = `(() => {
+        try {
+            const allBtns = Array.from(document.querySelectorAll('button, [role="button"]'))
+                .filter(b => b.offsetParent !== null && b.offsetHeight > 0);
+            
+            // Look for "Undo", "Discard", "Revert", "Reject"
+            const undoKeywords = ['Undo', 'Discard', 'Revert', 'Reject'];
+            let target = allBtns.find(b => {
+                const t = b.textContent.trim();
+                return undoKeywords.some(k => t.includes(k)) && t.length < 20;
+            });
+
+            if (target) {
+                target.click();
+                return { success: true, method: 'ui_button', clicked: target.textContent.trim() };
+            }
+            return { success: false };
+        } catch(e) { return { error: e.toString() }; }
+    })()`;
+
+    const uiResult = await cdpEval(cdp, BTN_EXP);
+    if (uiResult && uiResult.success) return uiResult;
+
+    // 2. Fallback: Dispatch Cmd+Z (Mac) or Ctrl+Z (Linux/Win)
+    try {
+        await cdp.call("Input.dispatchKeyEvent", {
+            type: "keyDown",
+            modifiers: 8, // Command
+            windowsVirtualKeyCode: 90, // 'Z'
+            nativeVirtualKeyCode: 90,
+            key: "z",
+            code: "KeyZ"
+        });
+        await cdp.call("Input.dispatchKeyEvent", {
+            type: "keyUp",
+            modifiers: 8,
+            windowsVirtualKeyCode: 90,
+            nativeVirtualKeyCode: 90,
+            key: "z",
+            code: "KeyZ"
+        });
+        return { success: true, method: 'keyboard_shortcut', note: 'Dispatched Cmd+Z' };
+    } catch (e) {
+        return { error: 'Keyboard undo failed: ' + e.message };
+    }
+}

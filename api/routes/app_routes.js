@@ -70,6 +70,7 @@ export function createRoutes(bridgeService, appPassword, authToken, authCookieNa
 
     // Remote Action Relay (Apply/Accept/Reject buttons)
     router.post('/relay-action', cdpWrapper((cdp, body) => NexusService.clickActionButton(cdp, body.action)));
+    router.post('/undo', cdpWrapper((cdp) => NexusService.triggerUndo(cdp)));
 
     // File Peek Utility
     router.get('/file-peek', (req, res) => {
