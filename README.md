@@ -8,8 +8,13 @@
 
 ## Core Features
 
-- **Real-Time Monitoring**: 1:1 visual mirroring of your development session.
+- **Real-Time Monitoring**: 1:1 visual mirroring of your Antigravity development session.
 - **Remote Interaction**: Send messages, stop generations, and change settings (Mode/Model) from your mobile device.
+- **Chat History**: Browse and switch conversations from your phone; tap to load any recent chat on desktop.
+- **Action Relay**: Tap Apply, Accept, or Reject buttons remotely with robust CDP matching.
+- **Remote Undo**: One-tap Back/Undo from mobile.
+- **Thought Expansion**: Peek into the AI's reasoning—tap to expand or collapse thought blocks from your phone.
+- **Power Toggle**: Start or stop the connector server from mobile.
 - **Global Access**: Optional secure tunneling via ngrok for remote connectivity over mobile data.
 - **Scroll Synchronization**: Syncs viewport positions between mobile and desktop.
 - **Zero-Dependency UI**: Sandboxed rendering ensures that mobile interactions do not disrupt the desktop session.
@@ -24,11 +29,11 @@ Start your environment with the remote debugging port enabled.
 
 **Command Line:**
 ```bash
-nexus . --remote-debugging-port=9000
+antigravity . --remote-debugging-port=9000
 ```
 
 **Context Menu (Linux/Windows):**
-Run the installer script to add "Open with Nexus (Debug)" to your file manager's right-click menu:
+Run the installer script to add "Open with Antigravity (Debug)" to your file manager's right-click menu:
 - Windows: `install_context_menu.bat`
 - Linux: `./install_context_menu.sh`
 
