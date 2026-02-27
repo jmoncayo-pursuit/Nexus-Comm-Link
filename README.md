@@ -6,10 +6,6 @@
 
 ---
 
-![Nexus Comm-Link Overview](./assets/global_access_hero_2.png)
-
----
-
 ## Core Features
 
 - **Real-Time Monitoring**: 1:1 visual mirroring of your development session.
