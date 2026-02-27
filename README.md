@@ -4,6 +4,8 @@
 
 **Nexus Comm-Link** is a lightweight server that provides a real-time mobile bridge for development sessions. It allows you to monitor and interact with your IDE from any mobile device via direct DOM mirroring and Chrome DevTools Protocol (CDP) integration.
 
+![Nexus Comm-Link Data Flow](./docs/data-flow.png)
+
 ---
 
 ## Core Features
