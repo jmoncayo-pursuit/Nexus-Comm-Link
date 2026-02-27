@@ -212,7 +212,7 @@ async function loadSnapshot(force = false) {
                                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                                 </svg>
                                 <h2>Waiting for IDE</h2>
-                                <p>Launch your editor with debug mode enabled:<br><code style="color:var(--accent); font-size:12px;">nexus . --remote-debugging-port=9000</code></p>
+                                <p>Launch your editor with debug mode enabled:<br><code style="color:var(--accent); font-size:12px;">antigravity . --remote-debugging-port=9000</code></p>
                                 <p style="font-size:11px; opacity:0.5;">Or double-click launch_nexus_debug.command</p>
                             </div>
                         `;
@@ -1267,17 +1267,26 @@ async function showChatHistory() {
                 } else if (block.type === 'chat') {
                     const item = document.createElement('div');
                     item.className = `history-item ${block.active ? 'active' : ''}`;
-                    item.onclick = () => {
+                    item.onclick = (e) => {
+                        // Prevent click if hitting delete
+                        if (e.target.closest('.history-item-delete')) return;
                         hideChatHistory();
                         selectChat(block.title);
                     };
+
                     item.innerHTML = `
-                        <div class="history-item-icon">💬</div>
                         <div class="history-item-content">
-                            <div class="history-item-title">${escapeHtml(block.title)}</div>
-                            <div class="history-item-meta">
-                                <span class="history-item-project">${escapeHtml(block.project || '')}</span>
-                            </div>
+                            <span class="history-item-title">${escapeHtml(block.title)}</span>
+                            ${block.active ? '<span class="history-item-dot">●</span>' : ''}
+                            ${block.project ? `<span class="history-item-project">${escapeHtml(block.project)}</span>` : ''}
+                        </div>
+                        <div class="history-item-right">
+                            <span class="history-item-time">${escapeHtml(block.time || '')}</span>
+                            ${block.active ? `
+                                <button class="history-item-delete" title="Delete conversation">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                </button>
+                            ` : ''}
                         </div>
                     `;
                     historyList.appendChild(item);
@@ -1309,6 +1318,8 @@ async function showChatHistory() {
 
 function hideChatHistory() {
     historyLayer.classList.remove('show');
+    // Also tell the IDE to close its panel
+    fetchWithAuth('/close-history', { method: 'POST' }).catch(() => { });
 }
 
 historyBtn.addEventListener('click', showChatHistory);

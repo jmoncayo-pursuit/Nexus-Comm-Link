@@ -32,14 +32,14 @@ The system acts as a "Headless Mirror" of the development session running on a D
 ### Data Flow
 ```mermaid
 graph TD
-    AG[Session] -- CDP Snapshots --> S[Node.js Server]
+    IDE[Antigravity Session] -- CDP Snapshots --> S[Node.js Server]
     S -- WebSocket Status --> P[Mobile Frontend]
     P -- GET /snapshot --> S
     P -- POST /login --> S
     S -- Cookie Auth --> P
     T[ngrok Tunnel] -- Proxy --> S
     P[Mobile Frontend] -- Mobile Data --> T
-    S -- CDP Commands --> AG
+    S -- CDP Commands --> IDE
     PY[launcher.py Manager] -- Spawns/Kills --> S
     PY -- Monitors --> T
 ```
@@ -50,15 +50,15 @@ graph TD
 | :--- | :--- |
 | `killPortProcess()` | Automatically kills any existing process on the server port (prevents EADDRINUSE errors). Works on Windows/Linux/macOS. |
 | `getLocalIP()` | Detects local network IP address for mobile access display. |
-| `discoverCDP()` | Scans ports (9000-9003) to find the Nexus instance. |
+| `discoverCDP()` | Scans ports (9000-9003) to find the Antigravity instance. |
 | `connectCDP()` | Establishes CDP WebSocket with centralized message handling (prevents memory leaks). Uses `pendingCalls` Map with 30s timeout. |
 | `captureSnapshot()` | Injects JS into Nexus to clone the chat DOM, extract CSS, and return it. |
 | `loadSnapshot()` (Client) | Renders the HTML snapshot and injects CSS overrides for dark mode. |
-| `injectMessage()` | Locates the Nexus input field and simulates typing/submission. Uses `JSON.stringify` for safe escaping. |
+| `injectMessage()` | Locates the Antigravity input field and simulates typing/submission. Uses `JSON.stringify` for safe escaping. |
 | `setMode()` / `setModel()` | Robust text-based selectors to change AI settings remotely. |
 | `clickElement()` | Relays a physical click from the phone to a specific element index on Desktop. |
 | `clickActionButton()` | Robust action relay for Apply/Accept/Reject buttons. Uses 4-tier matching: exact text → starts-with → contains → aria-label. |
-| `remoteScroll()` | Syncs phone scroll position to Desktop Nexus chat. |
+| `remoteScroll()` | Syncs phone scroll position to Desktop Antigravity chat. |
 | `getAppState()` | Syncs Mode/Model status and detects history visibility. |
 | `startNewChat()` | Triggers the "New Chat" action on Desktop. |
 | `getChatHistory()` | Scrapes the Nexus history panel for active/past conversations. |
@@ -77,7 +77,7 @@ graph TD
 | `/snapshot` | GET | Returns latest captured HTML/CSS snapshot. |
 | `/app-state` | GET | Returns current Mode (Fast/Planning) and Model. |
 | `/ssl-status` | GET | Returns HTTPS status and certificate info. |
-| `/send` | POST | Sends a message to the Nexus chat. Always returns 200 (optimistic). |
+| `/send` | POST | Sends a message to the Antigravity chat. Always returns 200 (optimistic). |
 | `/stop` | POST | Stops the current AI generation. |
 | `/set-mode` | POST | Changes mode to Fast or Planning. |
 | `/set-model` | POST | Changes the AI model. |
@@ -139,12 +139,12 @@ The server automatically detects SSL certificates and enables HTTPS:
 
 ## Execution Flow
 
-> ⚠️ **The order of these steps matters!** Always start Nexus with an active chat BEFORE running the server.
+> ⚠️ **The order of these steps matters!** Always start Antigravity with an active chat BEFORE running the server.
 
 ### Required Startup Sequence:
 
 1. **Start Nexus in Debug Mode**
-   - Launch Nexus with: `nexus . --remote-debugging-port=9000`
+   - Launch Antigravity with: `antigravity . --remote-debugging-port=9000`
    - Or use the context menu: Right-click folder → "Open with Nexus (Debug)"
 
 2. **Open or Start a Chat**
@@ -154,7 +154,7 @@ The server automatically detects SSL certificates and enables HTTPS:
 
 3. **Run the Server** (`start_nexus_connect.sh`)
    - **Port Cleanup**: Server automatically kills any existing process on port 3000
-   - **CDP Discovery**: Scans ports 9000-9003 to find the running Nexus instance
+   - **CDP Discovery**: Scans ports 9000-9003 to find the running Antigravity instance
    - **SSL Check**: Checks for certificates in `./certs/` and enables HTTPS if found
    - **Polling Starts**: Once connected, polls the UI every 1 second for changes
 

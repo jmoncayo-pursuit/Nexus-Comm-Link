@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# Nexus - Right-Click Context Menu Manager (Linux - Nautilus/GNOME)
+# Antigravity - Right-Click Context Menu Manager (Linux - Nautilus/GNOME)
 
 show_menu() {
     clear
     echo "==================================================="
-    echo "  Nexus - Right-Click Context Menu Manager"
+    echo "  Antigravity - Right-Click Context Menu Manager"
     echo "==================================================="
     echo ""
-    echo "This tool manages 'Open with Nexus (Debug)' in your"
+    echo "This tool manages 'Open with Antigravity (Debug)' in your"
     echo "Nautilus/GNOME file manager Right-Click menu."
     echo ""
     echo "WHAT IT DOES:"
     echo "  - Adds/Removes a script in ~/.local/share/nautilus/scripts/"
     echo "  - Adds a new option when you right-click a folder"
-    echo "  - Clicking it will run: nexus . --remote-debugging-port=9000"
+    echo "  - Clicking it will run: antigravity . --remote-debugging-port=9000"
     echo ""
     echo "REQUIREMENTS:"
     echo "  - Nautilus file manager (GNOME)"
@@ -35,7 +35,7 @@ show_menu() {
 }
 
 NAUTILUS_PATH="$HOME/.local/share/nautilus/scripts"
-SCRIPT_FILE="$NAUTILUS_PATH/Open with Nexus (Debug)"
+SCRIPT_FILE="$NAUTILUS_PATH/Open with Antigravity (Debug)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$SCRIPT_DIR/registry"
 
@@ -51,9 +51,9 @@ while true; do
                 mkdir -p "$NAUTILUS_PATH"
             fi
             echo "#!/bin/bash" > "$SCRIPT_FILE"
-            echo "# Nexus context menu script" >> "$SCRIPT_FILE"
+            echo "# Antigravity context menu script" >> "$SCRIPT_FILE"
             echo "cd \"\$NAUTILUS_SCRIPT_CURRENT_URI\" 2>/dev/null || cd \"\$(pwd)\"" >> "$SCRIPT_FILE"
-            echo "nexus . --remote-debugging-port=9000" >> "$SCRIPT_FILE"
+            echo "antigravity . --remote-debugging-port=9000" >> "$SCRIPT_FILE"
             chmod +x "$SCRIPT_FILE"
             echo ""
             echo "[SUCCESS] Context menu installed!"
@@ -68,7 +68,7 @@ while true; do
                 echo "[SUCCESS] Context menu removed!"
             else
                 echo ""
-                echo "[INFO] No Nexus context menu script found."
+                echo "[INFO] No Antigravity context menu script found."
             fi
             read -p "Press Enter to return to menu..."
             ;;
@@ -90,7 +90,7 @@ while true; do
                 echo "[SUCCESS] Backup saved to: $BACKUP_FILE"
             else
                 echo ""
-                echo "[INFO] No existing Nexus context menu script found to backup."
+                echo "[INFO] No existing Antigravity context menu script found to backup."
             fi
             read -p "Press Enter to return to menu..."
             ;;

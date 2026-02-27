@@ -7,20 +7,20 @@ Developing with powerful AI models in modern IDEs often involves long "thinking"
 Nexus Comm-Link isn't a replacement for the desktop IDE; it's a **wireless viewport**. It solves the "tethering" problem by mirroring the state of the desktop session to any device, ensuring full situational awareness from the palm of your hand.
 
 ## The Backstory
-Nexus Comm-Link is the spiritual and technical successor to [**Keep It Moving**](https://github.com/jmoncayo-pursuit/keep-it-moving), a VS Code extension originally submitted to a [Dev.to Hackathon](https://dev.to/jmoncayopursuit/building-keep-it-moving-my-first-vs-code-extension-k65).
+Nexus Comm-Link is the spiritual and technical successor to [**Keep It Moving**](https://github.com/jmoncayo-pursuit/keep-it-moving), a VS Code extension originally submitted to a [Dev.to Hackathon](https://dev.to/jmoncayopursuit/building-keep-it-moving-my-first-vs-code-extension-k65). The improvements in this iteration arose from the shared problem (remote monitoring of long-running AI sessions) and the constraints of the browser/Electron stack.
 
-By leveraging the direct accessibility of the **Nexus development environment**, this iteration provides a robust, full-stack **Mobile Connect** server that hooks directly into the heart of the development session without previous platform constraints.
+By leveraging the direct accessibility of the **Antigravity** development environment via Chrome DevTools Protocol, this iteration provides a robust, full-stack **Mobile Connect** server that hooks directly into the heart of the development session without previous platform constraints.
 
 ## Design Principles
 
 ### 1. Robustness Over Precision
-Selecting elements in a dynamically changing IDE like Nexus is brittle. This project prioritizes **Text-Based Selection** and **Fuzzy Matching**. Instead of looking for `.button-32x`, we look for an element that *looks like a button* and *contains the word "Gemini"*.
+Selecting elements in a dynamically changing IDE like Antigravity is brittle. This project prioritizes **Text-Based Selection** and **Fuzzy Matching**. Instead of looking for `.button-32x`, we look for an element that *looks like a button* and *contains the word "Gemini"*.
 
 ### 2. Zero-Impact Mirroring
 The snapshot system clones the DOM before capturing. This ensures that the mirroring process doesn't interfere with the developer's cursor, scroll position, or focus on the Desktop machine.
 
 ### 3. Visual Parity (The Dark Mode Bridge)
-Nexus themes have thousands of CSS variables. Instead of trying to mirror every variable perfectly, we use **Aggressive CSS Inheritance**. The frontend captures the raw HTML and wraps it in a modern, slate-dark UI that feels premium and natively mobile, regardless of the Desktop's theme. Recent updates layer this with **Glassmorphism UI components** and fine-tuned dark mode styling, ensuring that settings bars, model states, and quick actions remain frictionlessly readable and highly aesthetically pleasing against dynamic coding backgrounds.
+Antigravity themes have thousands of CSS variables. Instead of trying to mirror every variable perfectly, we use **Aggressive CSS Inheritance**. The frontend captures the raw HTML and wraps it in a modern, slate-dark UI that feels premium and natively mobile, regardless of the Desktop's theme. Recent updates layer this with **Glassmorphism UI components** and fine-tuned dark mode styling, ensuring that settings bars, model states, and quick actions remain frictionlessly readable and highly aesthetically pleasing against dynamic coding backgrounds.
 
 ### 4. Security-First Local Access
 - **HTTPS by Default**: When SSL certificates are generated, the server automatically uses HTTPS.
