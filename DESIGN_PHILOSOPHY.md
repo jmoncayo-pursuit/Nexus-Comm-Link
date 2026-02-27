@@ -7,7 +7,7 @@ Developing with powerful AI models in modern IDEs often involves long "thinking"
 Nexus Comm-Link isn't a replacement for the desktop IDE; it's a **wireless viewport**. It solves the "tethering" problem by mirroring the state of the desktop session to any device, ensuring full situational awareness from the palm of your hand.
 
 ## The Backstory
-Nexus Comm-Link is the spiritual and technical successor to **"Keep It Moving"**, a VS Code extension originally submitted to a [Dev.to Hackathon](https://dev.to/jmoncayopursuit/building-keep-it-moving-my-first-vs-code-extension-k65).
+Nexus Comm-Link is the spiritual and technical successor to [**Keep It Moving**](https://github.com/jmoncayo-pursuit/keep-it-moving), a VS Code extension originally submitted to a [Dev.to Hackathon](https://dev.to/jmoncayopursuit/building-keep-it-moving-my-first-vs-code-extension-k65).
 
 By leveraging the direct accessibility of the **Nexus development environment**, this iteration provides a robust, full-stack **Mobile Connect** server that hooks directly into the heart of the development session without previous platform constraints.
 
