@@ -129,23 +129,24 @@ export async function captureSnapshot(cdp) {
                 const looksLikeCommand = innerText.includes('Exit code') || innerText.includes('Output') || term.classList.contains('xterm');
                 if (!looksLikeCommand && term.tagName !== 'PRE') return;
 
-                let terminalText = (term.innerText || '');
+                const rows = Array.from(term.querySelectorAll('div, span, pre, code'));
+                let terminalText = '';
+                if (rows.length > 5) {
+                    terminalText = rows
+                        .map(row => row.innerText.trim())
+                        .filter(t => t && !t.toLowerCase().includes('copy') && !t.toLowerCase().includes('always run') && t.length > 1)
+                        .join(String.fromCharCode(10));
+                } else {
+                    terminalText = term.innerText;
+                }
                 
-                // Clean up generic UI buttons that bleed into the innerText
-                const cleanupRegex = /Always run(\s*v)?|Exit code [0-9]+|Copy contents/gi;
-                terminalText = terminalText.replace(cleanupRegex, '').trim();
+                terminalText = terminalText
+                    .replace(/Always run\s*v/g, '')
+                    .replace(/Exit code [0-9]+/g, '')
+                    .replace(/Copy contents/gi, '')
+                    .trim();
 
                 term.innerHTML = '';
-
-                // If the terminal hasn't actually produced any text yet, gracefully show a connecting spinner
-                if (!terminalText || terminalText.trim() === '') {
-                    term.innerHTML = \`<div style="padding: 12px 16px; background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(34, 211, 238, 0.3); border-radius: 6px; color: #94a3b8; font-family: 'Outfit', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 12px; margin: 12px 0;">
-                        <div style="width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #22d3ee; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                        Terminal Signal Connecting...
-                    </div>\`;
-                    return;
-                }
-
                 const header = document.createElement('div');
                 header.className = 'nexus-terminal-header';
                 const title = document.createElement('span');
@@ -162,7 +163,7 @@ export async function captureSnapshot(cdp) {
 
                 const pre = document.createElement('pre');
                 pre.style.cssText = 'color:#fff; background:#000; padding:16px; margin:0; font-family:"JetBrains Mono", monospace; font-size:13px; line-height:1.5; white-space:pre-wrap; word-break:break-all; border:1px solid #334155; border-top:none; border-radius:0 0 6px 6px;';
-                pre.innerText = terminalText;
+                pre.innerText = terminalText || 'Stream Offline...';
                 term.appendChild(pre);
                 term.style.cssText = 'display:block; background:#000; overflow:hidden; margin:12px 0; width:100%; box-sizing:border-box; position:relative !important;';
             });
@@ -492,6 +493,7 @@ export async function getChatHistory(cdp) {
             const btn = document.querySelector('[data-tooltip-id*="history"]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg.lucide-clock'));
             if (!btn) return { error: 'History button not found' };
             
+            // Re-open if closed or ensure it is open
             if (btn.getAttribute('aria-expanded') !== 'true') {
                 btn.click(); await new Promise(r => setTimeout(r, 1000));
             }
@@ -502,58 +504,43 @@ export async function getChatHistory(cdp) {
             if (!panel) return { error: 'Panel not found', blocks: [] };
             
             const timeHeaders = /^(today|yesterday|previous|last|(\\d+\\s*(min|hr|day|wk|mo)s?\\s*ago)|current|other conversations|recent in .*)$/i;
-            const blocks = [];
+            const blocks = []; const seen = new Set();
             
-            const elements = Array.from(panel.querySelectorAll('*')).filter(el => {
-                const text = el.textContent.trim();
-                return text.length > 1 && el.children.length === 0;
-            });
+            // Capture all relevant title/header text elements in the panel in visual order
+            const elements = Array.from(panel.querySelectorAll('span, div[class*="title"], div[class*="label"]'));
             
-            const seenItems = new Set();
-            for (let i = 0; i < elements.length; i++) {
-                const el = elements[i];
+            for (const el of elements) {
                 const text = el.textContent.trim();
+                if (text.length < 2 || seen.has(text)) continue;
                 
+                // Identify headers (labels for groups)
                 if (timeHeaders.test(text)) {
                     blocks.push({ type: 'header', title: text });
+                    seen.add(text);
                     continue;
                 }
 
-                const container = el.closest('div[role="button"]') || el.closest('[class*="item"]');
-                if (container && !seenItems.has(container)) {
-                    seenItems.add(container);
-                    
-                    // Inside this container, pick out the pieces
-                    const allTexts = Array.from(container.querySelectorAll('*'))
-                        .filter(c => c.children.length === 0 && c.textContent.trim().length > 0)
-                        .map(c => c.textContent.trim());
-                    
-                    if (allTexts.length === 0) continue;
-                    if (allTexts.some(t => t.includes('Show ') && t.includes('more'))) {
-                        blocks.push({ type: 'action', title: allTexts.find(t => t.includes('more')) });
-                        continue;
-                    }
+                // Identify Chat Items
+                const container = el.closest('div[role="button"]') || el.closest('div[class*="item"]');
+                if (container && !text.includes('Show ') && !text.includes('more')) {
+                    const isActive = container.className?.includes('selected') || 
+                                     container.className?.includes('active') || 
+                                     container.getAttribute('aria-selected') === 'true' ||
+                                     container.style.background?.includes('rgb(2'); 
 
-                    // Heuristic for Title vs Time vs Project
-                    let title = allTexts[0];
-                    let time = "";
-                    let project = "";
-                    let active = container.className?.includes('selected') || 
-                                 container.className?.includes('active') || 
-                                 container.getAttribute('aria-selected') === 'true' ||
-                                 container.style.background?.includes('rgb(2');
-
-                    // If we have multiple texts, let's try to identify them
-                    const timeRegex = /^(just now|\\d+\\s*(secs?|mins?|hrs?|days?|wks?|mos?|yrs?)\\s*ago)$/i;
-                    
-                    for (let j = 1; j < allTexts.length; j++) {
-                        const t = allTexts[j];
-                        if (timeRegex.test(t)) time = t;
-                        else if (t.length > 2 && t !== title) project = t;
-                    }
-
-                    blocks.push({ type: 'chat', title, time, project, active: !!active });
+                    blocks.push({ 
+                        type: 'chat', 
+                        title: text, 
+                        active: !!isActive,
+                        project: container.querySelector('[class*="description"], [class*="desc"]')?.textContent.trim() || ''
+                    });
+                    seen.add(text);
+                } else if (text.includes('Show ') && text.includes('more')) {
+                    blocks.push({ type: 'action', title: text });
+                    seen.add(text);
                 }
+                
+                if (blocks.length >= 60) break;
             }
             return { success: true, blocks };
         } catch(e) { return { error: e.toString(), blocks: [] }; }
@@ -577,6 +564,7 @@ export async function selectChat(cdp, chatTitle) {
 
     const res = await cdpEval(cdp, EXP, { awaitPromise: true });
     return res || { error: 'Context failed' };
+    return { error: 'Context failed' };
 }
 
 export async function getAppState(cdp) {
@@ -611,31 +599,23 @@ export async function getAppState(cdp) {
 }
 
 export async function triggerUndo(cdp) {
+    // 1. First try to find a physical Undo/Discard button in the chat UI
     const BTN_EXP = `(() => {
         try {
-            // 1. Try to find strictly defined 'Undo', 'Discard', etc buttons
-            const undoKeywords = ['Undo', 'Discard', 'Revert', 'Reject', 'Restore'];
-            const allElements = Array.from(document.querySelectorAll('button, [role="button"], a, span'));
+            const allBtns = Array.from(document.querySelectorAll('button, [role="button"]'))
+                .filter(b => b.offsetParent !== null && b.offsetHeight > 0);
             
-            // Prioritize elements with 'lucide-undo' icons or specific labels
-            let target = allElements.find(el => {
-                const text = el.textContent.trim().toLowerCase();
-                const hasIcon = !!el.querySelector('svg[class*="undo"], svg[class*="rotate-ccw"]');
-                return (undoKeywords.some(k => text === k.toLowerCase()) || (hasIcon && text === '')) && el.offsetParent !== null;
+            // Look for "Undo", "Discard", "Revert", "Reject"
+            const undoKeywords = ['Undo', 'Discard', 'Revert', 'Reject'];
+            let target = allBtns.find(b => {
+                const t = b.textContent.trim();
+                return undoKeywords.some(k => t.includes(k)) && t.length < 20;
             });
 
             if (target) {
                 target.click();
-                return { success: true, method: 'ui_button', clicked: target.textContent.trim() || 'Icon' };
+                return { success: true, method: 'ui_button', clicked: target.textContent.trim() };
             }
-
-            // 2. Try the 'lucide-rotate-ccw' pattern common in chat interfaces
-            const iconBtn = Array.from(document.querySelectorAll('button')).find(b => b.querySelector('svg[class*="rotate-ccw"]') || b.querySelector('svg[class*="undo"]'));
-            if (iconBtn) {
-                iconBtn.click();
-                return { success: true, method: 'ui_icon_button' };
-            }
-
             return { success: false };
         } catch(e) { return { error: e.toString() }; }
     })()`;
@@ -643,106 +623,26 @@ export async function triggerUndo(cdp) {
     const uiResult = await cdpEval(cdp, BTN_EXP);
     if (uiResult && uiResult.success) return uiResult;
 
-    // 3. Last Resort: Force Focus and Dispatch Cmd+Z
+    // 2. Fallback: Dispatch Cmd+Z (Mac) or Ctrl+Z (Linux/Win)
     try {
-        // Find the main chat input to force focus there first
-        await cdp.call("Runtime.evaluate", {
-            expression: `(document.querySelector('textarea, [contenteditable="true"]') || document.body).focus()`
+        await cdp.call("Input.dispatchKeyEvent", {
+            type: "keyDown",
+            modifiers: 8, // Command
+            windowsVirtualKeyCode: 90, // 'Z'
+            nativeVirtualKeyCode: 90,
+            key: "z",
+            code: "KeyZ"
         });
-
-        await new Promise(r => setTimeout(r, 50));
-
-        await cdp.call("Input.dispatchKeyEvent", { type: "keyDown", modifiers: 8, windowsVirtualKeyCode: 90, key: "z", code: "KeyZ" });
-        await cdp.call("Input.dispatchKeyEvent", { type: "keyUp", modifiers: 8, windowsVirtualKeyCode: 90, key: "z", code: "KeyZ" });
-
-        return { success: true, method: 'keyboard_shortcut', note: 'Forced focus + Cmd+Z' };
+        await cdp.call("Input.dispatchKeyEvent", {
+            type: "keyUp",
+            modifiers: 8,
+            windowsVirtualKeyCode: 90,
+            nativeVirtualKeyCode: 90,
+            key: "z",
+            code: "KeyZ"
+        });
+        return { success: true, method: 'keyboard_shortcut', note: 'Dispatched Cmd+Z' };
     } catch (e) {
         return { error: 'Keyboard undo failed: ' + e.message };
     }
-}
-
-/**
- * Extracts turns (user/assistant) from the raw or cleaned HTML snapshot.
- * This is used for syncing Gemini Live context with the current IDE state.
- */
-export function extractChatHistoryFromHTML(html) {
-    if (!html) return [];
-    
-    // Antigravity/Cursor specific: Messages are often in divs with 'user' or 'assistant' in class
-    // or sometimes just alternating blocks.
-    const messages = [];
-    
-    // Heuristic 1: Look for blocks that explicitly define a role
-    const blockRegex = /<div[^>]*class="[^"]*(message|turn|chat)[^"]*"[^>]*>([\s\S]*?)<\/div>/gi;
-    let match;
-    while ((match = blockRegex.exec(html)) !== null) {
-        const fullBlock = match[0];
-        const innerContent = match[2];
-        
-        // Clean text
-        let cleanText = innerContent.replace(/<button[^>]*>[\s\S]*?<\/button>/gi, '')
-                                .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
-                                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                                .replace(/<[^>]*>/g, ' ')
-                                .replace(/\s+/g, ' ').trim();
-
-        if (cleanText.length < 5) continue;
-
-        const isAssistant = fullBlock.toLowerCase().includes('assistant') || 
-                            fullBlock.toLowerCase().includes('bot') ||
-                            fullBlock.toLowerCase().includes('nexus') ||
-                            /^(Assistant|Nexus|AI|Model)[:\s]/i.test(cleanText);
-
-        const isUser = fullBlock.toLowerCase().includes('user') || 
-                       /^(You|User)[:\s]/i.test(cleanText);
-
-        if (isAssistant || isUser) {
-            messages.push({
-                role: isAssistant ? 'assistant' : 'user',
-                text: cleanText.replace(/^(Assistant|Nexus|AI|Model|You|User)[:\s]*/i, '').trim()
-            });
-        }
-    }
-
-    // Heuristic 2: Find "You" and "Assistant" markers directly in the text if no blocks matched
-    if (messages.length === 0) {
-        const lines = html.replace(/<[^>]*>/g, '\n').split('\n');
-        let currentRole = null;
-        let currentText = [];
-
-        for (let line of lines) {
-            line = line.trim();
-            if (!line) continue;
-
-            const userMatch = line.match(/^(You|User):?$/i);
-            const aiMatch = line.match(/^(Assistant|Nexus|AI|Model):?$/i);
-
-            if (userMatch || aiMatch) {
-                if (currentRole && currentText.length > 0) {
-                    messages.push({ role: currentRole, text: currentText.join(' ').trim() });
-                }
-                currentRole = userMatch ? 'user' : 'assistant';
-                currentText = [];
-            } else if (currentRole) {
-                currentText.push(line);
-            }
-        }
-        if (currentRole && currentText.length > 0) {
-            messages.push({ role: currentRole, text: currentText.join(' ').trim() });
-        }
-    }
-
-    // De-duplicate and limit
-    const unique = [];
-    const seen = new Set();
-    for (const m of messages) {
-        const key = m.role + m.text.substring(0, 100);
-        if (!seen.has(key)) {
-            unique.push(m);
-            seen.add(key);
-        }
-    }
-
-    return unique.slice(-10); // Sync last 10 turns for context
 }

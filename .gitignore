@@ -34,4 +34,11 @@ build/
 certs/
 
 # Registry
-registry/config/target.json
+registry/
+
+# Mission Specific Documentation (Keep Private)
+MISSION_SUCCESS.md
+INTERNAL_MISSION_LOG.md
+config/
+requirements.txt
+launch_nexus.command

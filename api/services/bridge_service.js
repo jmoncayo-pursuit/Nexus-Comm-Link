@@ -1,12 +1,10 @@
 import { captureSnapshot } from './nexus_service.js';
-import { hashString, isPortOpen } from '../../api/services/utils.js';
-import { discoverCDP, connectCDP } from '../../api/services/cdp_service.js';
+import { hashString, isPortOpen } from './utils.js';
+import { discoverCDP, connectCDP } from './cdp_service.js';
 import { WebSocket } from 'ws';
-import { EventEmitter } from 'events';
 
-export class BridgeService extends EventEmitter {
+export class BridgeService {
     constructor(wss) {
-        super();
         this.wss = wss;
         this.cdpConnection = null;
         this.lastSnapshot = null;
@@ -19,7 +17,7 @@ export class BridgeService extends EventEmitter {
     }
 
     async initCDP() {
-        // Reduced noise. Log only on success or critical transition.
+        // console.log('🔍 Discovering Nexus CDP endpoint...');
         try {
             const cdpInfo = await discoverCDP();
             console.log(`✅ Found Nexus on port ${cdpInfo.port}`);
@@ -35,11 +33,7 @@ export class BridgeService extends EventEmitter {
 
             return this.cdpConnection;
         } catch (err) {
-            const now = Date.now();
-            if (now - this.lastErrorLog > 30000) { // Log error only every 30s
-                console.warn(`⚠️  CDP discovery failed: ${err.message}. Ensure your IDE is running with --remote-debugging-port=9000`);
-                this.lastErrorLog = now;
-            }
+            // console.warn(`⚠️  CDP discovery failed: ${err.message}`);
             throw err;
         }
     }
@@ -61,6 +55,7 @@ export class BridgeService extends EventEmitter {
             // 2. Handle Reconnection
             if (!this.cdpConnection) {
                 if (!this.isConnecting) {
+                    // console.log('🔍 Looking for Nexus CDP connection...');
                     this.isConnecting = true;
                 }
                 try {
@@ -87,6 +82,7 @@ export class BridgeService extends EventEmitter {
                             this.lastSnapshot = snapshot;
                             this.lastSnapshotHash = hash;
                             this.broadcast({ type: 'snapshot_update' });
+                            console.log(`📸 Snapshot updated (hash: ${hash})`);
                         }
                     } else {
                         const now = Date.now();
@@ -113,22 +109,6 @@ export class BridgeService extends EventEmitter {
             apiConnected: this.lastApiState,
             cdpConnected: this.lastCdpState
         });
-    }
-
-    handleMessage(ws, message) {
-        try {
-            const data = JSON.parse(message);
-            if (data.type) {
-                // Emit for internal listeners (like LiveAgentService)
-                this.emit(data.type, data);
-            }
-        } catch (e) {
-            console.warn('⚠️  Could not parse inbound WS message:', e.message);
-        }
-    }
-
-    onMessage(type, callback) {
-        this.on(type, callback);
     }
 
     broadcast(message) {
