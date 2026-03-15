@@ -19,7 +19,7 @@
         "ws": "^8.18.0"
     },
     "author": "Jean Moncayo",
-    "license": "MIT",
+    "license": "Proprietary",
     "engines": {
         "node": ">=16.0.0"
     }
