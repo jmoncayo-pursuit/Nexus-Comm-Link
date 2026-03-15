@@ -38,30 +38,42 @@ export async function discoverCDP() {
     for (const { port, list } of listResults) {
         const workbench = list.find(t =>
             t.type === 'page' &&
-            (t.url?.includes('workbench.html') || t.url?.includes('index.html') || t.title?.includes('Antigravity')) &&
+            (
+                t.url?.includes('workbench.html') || 
+                t.url?.includes('index.html') || 
+                t.title?.includes('Antigravity') ||
+                t.title?.includes('nexus_comm_link')
+            ) &&
             !t.title?.includes('generator.py') &&
-            !t.url?.includes('jetski')
+            !t.url?.includes('jetski') &&
+            !t.title?.includes('Launchpad')
         );
         if (workbench && workbench.webSocketDebuggerUrl) {
-            console.log(`✅ [Port ${port}] Found Workbench target:`, workbench.title);
+            console.log(`✅ [Port ${port}] Found Workbench target:`, workbench.title || '(no title)');
             return { port, url: workbench.webSocketDebuggerUrl };
         }
     }
 
     // Priority 2: 9000 is our Manual Launch Port - If we launched it, we likely want it
+    // But exclude Launchpad and Jetski
     const port9000 = listResults.find(r => r.port === 9000);
     if (port9000) {
-        const generic9000 = port9000.list.find(t => t.type === 'page' && t.webSocketDebuggerUrl);
+        const generic9000 = port9000.list.find(t => 
+            t.type === 'page' && 
+            t.webSocketDebuggerUrl &&
+            !t.title?.includes('Launchpad') &&
+            !t.url?.includes('jetski')
+        );
         if (generic9000) {
-            console.log(`🎯 [Port 9000] Found manual launch target:`, generic9000.title);
+            console.log(`🎯 [Port 9000] Found manual launch target:`, generic9000.title || '(no title)');
             return { port: 9000, url: generic9000.webSocketDebuggerUrl };
         }
     }
 
     // Priority 3: Jetski/Launchpad
     for (const { port, list } of listResults) {
-        const jetski = list.find(t => t.url?.includes('jetski') || t.title === 'Launchpad');
-        if (jetski && jetski.webSocketDebuggerUrl) {
+        const jetski = list.find(t => (t.url?.includes('jetski') || t.title === 'Launchpad') && t.webSocketDebuggerUrl);
+        if (jetski) {
             console.log(`🔧 [Port ${port}] Found Jetski/Launchpad target:`, jetski.title);
             return { port, url: jetski.webSocketDebuggerUrl };
         }
@@ -140,8 +152,9 @@ export async function connectCDP(url) {
 
             try {
                 await ws.call('Console.enable', {});
+                await ws.call('Page.enable', {});
             } catch (e) {
-                console.warn('⚠️  Console.enable failed:', e.message);
+                console.warn('⚠️  Domain enablement failed:', e.message);
             }
 
             resolve(ws);

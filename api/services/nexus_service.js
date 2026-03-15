@@ -274,6 +274,39 @@ export async function captureSnapshot(cdp) {
     return firstError;
 }
 
+/**
+ * Captures a visual screenshot of the IDE's current view.
+ * Optimized for Gemini Live (JPEG, quality 40, ~768px width)
+ */
+export async function captureScreenshot(cdp) {
+    try {
+        // We get the viewport size first to scale it down (Gemini prefers ~768px for vision)
+        const layout = await cdp.call("Page.getLayoutMetrics");
+        const viewport = layout.cssVisualViewport;
+        const width = viewport.clientWidth;
+        const height = viewport.clientHeight;
+
+        // Take the screenshot via CDP
+        const res = await cdp.call("Page.captureScreenshot", {
+            format: "jpeg",
+            quality: 40, // Low quality for fast streaming
+            optimizeForSpeed: true
+        });
+
+        if (res && res.data) {
+            return {
+                data: res.data, // Base64
+                mimeType: "image/jpeg",
+                width,
+                height
+            };
+        }
+    } catch (e) {
+        console.error('[nexus-service] Screenshot failed:', e);
+    }
+    return null;
+}
+
 export async function getConversationTranscript(cdp) {
     const EXP = `(() => {
         const root = document.getElementById('conversation') || document.getElementById('chat') || document.getElementById('cascade') ||

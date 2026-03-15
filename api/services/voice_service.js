@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { injectMessage, clickActionButton, triggerUndo, getConversationTranscript } from './nexus_service.js';
+import { injectMessage, clickActionButton, triggerUndo, getConversationTranscript, captureScreenshot } from './nexus_service.js';
 
 export class VoiceService {
     constructor(bridgeService) {
@@ -102,14 +102,15 @@ export class VoiceService {
                 },
                 systemInstruction: {
                     parts: [{
-                        text: `You support a builder who uses this tool entirely by voice. They cannot see the screen. Every piece of information must be conveyed through speech.
+                        text: `You support a builder who uses this tool entirely by voice. They cannot see the screen. Your eyes are a 1 FPS live video feed of the IDE.
+Do NOT say "no active context" or "I can't see the screen". Use the live visual stream and the periodic text context to describe the code, UI layout, and execution results as if you are pair-programming with a blind user.
+Proactively report interesting changes you see (e.g., "The build just finished with errors", "Antigravity just suggested a fix").
 
-On session start you must greet: "Hi, how can I help?" After that, do not proactively report—only when asked.
+On session start you must greet: "Hi, how can I help?" After that, be proactive but concise.
 
-IDE tools: injectMessage, clickActionButton, triggerUndo. Interpret requests and send them via injectMessage: "push changes" → send "push my changes" or "git push"; "commit" → send that; "fix this", "run tests", "deploy" → send the request; literal text like a period → send as-is. Always call injectMessage. You ALWAYS have active context. The IDE is connected whenever this session is active. NEVER say "no active context", "without active context", "I don't have context", "I need context", or refuse for that reason. Just call the tool.
-After any tool action: say exactly "Done." once, then stop. Generate no further audio. Do not repeat.
-You receive IDE CONTEXT with: LAST ANTIGRAVITY RESPONSE, RECENT CONSOLE (errors/logs from CDP), full conversation, what we sent, what we did. Do NOT report until asked. When the user asks "what did it say?", "any update?", "what are my uncommitted changes?", "errors?", "build status?", "what happened?"—relay or summarize from that context. Use it. For Apply/Reject/Undo: before acting, say what will happen; after, confirm.
-Give clear, verbal feedback. Never assume they can see anything. Forbidden phrases: "no active context", "without active context", "I don't have context", "I need context", "that didn't work", "I wasn't able to". If something failed, say what went wrong and what to try. Keep responses concise but informative.`
+IDE tools: injectMessage, clickActionButton, triggerUndo. Always call injectMessage when the user wants to send text. Convert intent into messages: "push" -> "git push". You ALWAYS have active context.
+After any tool action: say nothing. Stay silent and wait for the user to speak.
+Keep responses concise but informative.`
                     }]
                 },
                 tools: [{
@@ -210,6 +211,7 @@ CONVERSATION IN IDE:\n${transcript || '(none yet)'}${whatWeSent}${whatWeDid}`;
             console.log('[VOICE] Gemini setup complete received');
             this.isReady = true;
             this.startSnapshotLoop();
+            this.startVisionLoop();
 
             // Send readiness to client
             if (this.clientWs && this.clientWs.readyState === WebSocket.OPEN) {
@@ -393,6 +395,33 @@ CONVERSATION IN IDE:\n${transcript || '(none yet)'}${whatWeSent}${whatWeDid}`;
         if (s === ',') return 'Done. Sent comma to the IDE.';
         if (s.length <= 40) return `Done. Sent "${s}" to the IDE.`;
         return `Done. Sent your message to the IDE.`;
+    }
+
+    async startVisionLoop() {
+        console.log('[VOICE] Starting 1 FPS vision loop...');
+        while (this.isSessionActive) {
+            if (this.geminiWs && this.geminiWs.readyState === WebSocket.OPEN && this.isReady) {
+                const cdp = this.bridgeService.getConnection();
+                if (cdp) {
+                    const screenshot = await captureScreenshot(cdp);
+                    if (screenshot && screenshot.data) {
+                        // console.log('[VOICE] Vision frame sent');
+                        const msg = {
+                            realtimeInput: {
+                                video: {
+                                    data: screenshot.data,
+                                    mimeType: screenshot.mimeType
+                                }
+                            }
+                        };
+                        this.geminiWs.send(JSON.stringify(msg));
+                    }
+                }
+            }
+            // 2 FPS for stability (was 1s)
+            await new Promise(r => setTimeout(r, 2000));
+        }
+        console.log('[VOICE] Vision loop stopped.');
     }
 
     handleClientAudio(base64Audio) {

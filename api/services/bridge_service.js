@@ -92,12 +92,18 @@ export class BridgeService {
                             this.lastSnapshot = snapshot;
                             this.lastSnapshotHash = hash;
                             // snapshot updated (broadcast sent; no log to reduce noise)
+                            const now = Date.now();
+                            if (now - (this.lastSuccessLog || 0) > 60000) {
+                                const stats = snapshot.stats || {};
+                                console.log(`✅ Snapshot heartbeat: ${stats.nodes || 0} nodes, ${Math.round((stats.htmlSize || 0)/1024)}KB`);
+                                this.lastSuccessLog = now;
+                            }
                             this.broadcast({ type: 'snapshot_update' });
                         }
                     } else {
                         const now = Date.now();
-                        if (now - this.lastErrorLog > 30000) { // Reduced error noise
-                            console.warn(`⚠️  Snapshot capture issue: ${snapshot?.error || 'No valid snapshot'}`);
+                        if (now - this.lastErrorLog > 10000) { 
+                            console.warn(`⚠️  Snapshot capture issue: ${snapshot?.error || 'No valid snapshot'} (Title: "${snapshot?.title}", URL: "${snapshot?.url}")`);
                             this.lastErrorLog = now;
                         }
                     }

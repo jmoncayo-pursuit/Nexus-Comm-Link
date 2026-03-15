@@ -126,7 +126,8 @@ def main():
     with open("server_log.txt", "w") as f:
         f.write(f"--- Server Started at {time.ctime()} ---\n")
 
-    node_cmd = ["node", "server.js"]
+    # We use npx nodemon to ensure auto-restarts on code changes
+    node_cmd = ["npx", "nodemon", "server.js", "--ext", "js,json"]
     node_process = None
     
     try:
