@@ -90,13 +90,58 @@ def print_qr(url):
     # invert=True is often needed for dark terminals (white blocks on black bg)
     qr.print_ascii(invert=True)
 
+def launch_editor(target):
+    """Attempts to launch the target editor/browser with remote debugging enabled."""
+    print(f"🎯 Attempting to launch and link: {target.upper()}...")
+    
+    cmds = {
+        'antigravity': {
+            'darwin': ["/Applications/Antigravity.app/Contents/MacOS/Electron", ".", "--remote-debugging-port=9000"],
+            'linux': ["antigravity", ".", "--remote-debugging-port=9000"],
+            'win32': [os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Programs', 'antigravity', 'Antigravity.exe'), ".", "--remote-debugging-port=9000"]
+        }
+    }
+    
+    if target != 'antigravity':
+        return
+
+    platform = sys.platform
+    if platform not in ['darwin', 'linux', 'win32']:
+        print(f"⚠️  Auto-launch not supported on {platform} yet.")
+        return
+
+    cmd = cmds[target].get(platform if platform in ['darwin', 'win32'] else 'linux')
+    if not cmd:
+        return
+
+    try:
+        # Check if the binary exists for macOS/Windows
+        if platform == 'darwin' and not os.path.exists(cmd[0]):
+            print(f"❌ Could not find Antigravity at {cmd[0]}")
+            return
+        elif platform == 'win32':
+            # Fallback for Windows if not in LocalAppData
+            if not os.path.exists(cmd[0]):
+                cmd[0] = "antigravity.exe" # Try in PATH
+                
+        subprocess.Popen(cmd, shell=(platform == 'win32'), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"✅ Launched Antigravity with --remote-debugging-port=9000")
+        time.sleep(2)
+    except Exception as e:
+        print(f"❌ Failed to launch {target}: {e}")
+
 # -----------------------------------------------------------------------------
 # Main Execution
 # -----------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Nexus Phone Connect Launcher")
     parser.add_argument('--mode', choices=['local', 'web'], default='local', help="Mode to run in: 'local' (WiFi) or 'web' (Internet)")
+    parser.add_argument('--link', choices=['none', 'antigravity'], default='none', help="Try to launch and link Antigravity with debugging enabled")
     args = parser.parse_args()
+
+    # 0. Try to launch editor if requested
+    if args.link != 'none':
+        launch_editor(args.link)
 
     # 1. Setup Environment
     check_dependencies()
@@ -110,7 +155,7 @@ def main():
     from dotenv import load_dotenv
     
     # Load .env if it exists
-    load_dotenv()
+    load_dotenv(override=True)
     
     # Setup App Password
     passcode = os.environ.get('APP_PASSWORD')
@@ -127,18 +172,14 @@ def main():
         f.write(f"--- Server Started at {time.ctime()} ---\n")
 
     # We use npx nodemon to ensure auto-restarts on code changes
-    node_cmd = ["npx", "nodemon", "server.js", "--ext", "js,json"]
+    node_cmd = ["node", "server.js"]
     node_process = None
     
     try:
         # Redirect stdout/stderr to file
         log_file = open("server_log.txt", "a")
-        if sys.platform == "win32":
-            # On Windows, using shell=True can help with path resolution but makes killing harder.
-            # We'll use shell=False and rely on PATH.
-            node_process = subprocess.Popen(node_cmd, stdout=log_file, stderr=log_file, env=os.environ.copy())
-        else:
-            node_process = subprocess.Popen(node_cmd, stdout=log_file, stderr=log_file, env=os.environ.copy())
+        is_windows = sys.platform == "win32"
+        node_process = subprocess.Popen(node_cmd, shell=is_windows, stdout=log_file, stderr=log_file, env=os.environ.copy())
             
         time.sleep(2) # Give it a moment to crash if it's going to
         if node_process.poll() is not None:

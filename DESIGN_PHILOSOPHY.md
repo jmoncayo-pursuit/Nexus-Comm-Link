@@ -14,7 +14,7 @@ By leveraging the direct accessibility of the **Nexus development environment**,
 ## Design Principles
 
 ### 1. Robustness Over Precision
-Selecting elements in a dynamically changing IDE like Nexus is brittle. This project prioritizes **Text-Based Selection** and **Fuzzy Matching**. Instead of looking for `.button-32x`, we look for an element that *looks like a button* and *contains the word "Gemini"*.
+Selecting elements in a dynamically changing IDE is brittle. This project prioritizes **Reliable CDP Evaluation** and **Fuzzy Matching**. We use a unified evaluation engine that safely traverses execution contexts and preserves valid falsy returns, ensuring that whether we're clicking a button or reading a state, the bridge never drops a signal.
 
 ### 2. Zero-Impact Mirroring
 The snapshot system clones the DOM before capturing. This ensures that the mirroring process doesn't interfere with the developer's cursor, scroll position, or focus on the Desktop machine.
@@ -26,6 +26,7 @@ Nexus themes have thousands of CSS variables. Instead of trying to mirror every 
 - **HTTPS by Default**: When SSL certificates are generated, the server automatically uses HTTPS.
 - **Hybrid SSL Generation**: Tries OpenSSL first (better IP SAN support), falls back to Node.js crypto (zero dependencies).
 - **Auto IP Detection**: Certificates include your local network IP addresses for better browser compatibility.
+- **Hardened Access**: The bridge uses strict private IP range validation (`isLocalRequest`) and signed cookie authentication to ensure your development session remains truly private, even on shared networks.
 - **LAN Constraint & Global Freedom**: By default, it stays on LAN for privacy. However, the `_web` mode introduces secure tunneling for global access, prioritizing **Freedom of Movement** without sacrificing security.
 
 ### 5. Mobile-First Navigation (History Management)
@@ -36,6 +37,7 @@ The mobile UI now features a **Full-screen History Layer**. This design choice r
 ### 5. Resilient Error Handling
 - **Optimistic Updates**: Message sending clears the input immediately and refreshes to verify.
 - **Layered Interaction**: Using full-screen overlays for history management ensures that complex navigation doesn't interfere with the real-time session mirroring.
+- **Unified CDP Engine**: A centralized evaluation loop ensures consistent behavior across all features—from snapshotting to action relays—with proper platform-specific handling for keyboard shortcuts like Undo.
 - **Silent Failure resilience**: Memory leak prevention and centralized CDP handling ensure the server stays up even if the desktop session is volatile.
 - **Graceful Shutdown**: Clean exit on Ctrl+C, closing all connections properly.
 
