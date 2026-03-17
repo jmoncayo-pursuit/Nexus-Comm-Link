@@ -167,19 +167,30 @@ def main():
     # 2. Start Node.js Server (Common to both modes)
     print(f"🚀 Starting Nexus Server ({args.mode.upper()} mode)...")
     
-    # Clean up old logs
-    with open("server_log.txt", "w") as f:
-        f.write(f"--- Server Started at {time.ctime()} ---\n")
+    # Try to setup logs, but don't crash if we can't write to the directory
+    log_file_path = "server_log.txt"
+    log_file = None
+    try:
+        with open(log_file_path, "w") as f:
+            f.write(f"--- Server Started at {time.ctime()} ---\n")
+        log_file = open(log_file_path, "a")
+    except Exception as e:
+        print(f"⚠️  Warning: Cannot write to {log_file_path} ({e}). Logging to console only.")
 
-    # We use npx nodemon to ensure auto-restarts on code changes
+    # We use node to ensure background stability
     node_cmd = ["node", "server.js"]
     node_process = None
     
     try:
-        # Redirect stdout/stderr to file
-        log_file = open("server_log.txt", "a")
         is_windows = sys.platform == "win32"
-        node_process = subprocess.Popen(node_cmd, shell=is_windows, stdout=log_file, stderr=log_file, env=os.environ.copy())
+        # If log_file is none, subprocess will use stdout/stderr of parent
+        node_process = subprocess.Popen(
+            node_cmd, 
+            shell=is_windows, 
+            stdout=log_file if log_file else None, 
+            stderr=log_file if log_file else None, 
+            env=os.environ.copy()
+        )
             
         time.sleep(2) # Give it a moment to crash if it's going to
         if node_process.poll() is not None:

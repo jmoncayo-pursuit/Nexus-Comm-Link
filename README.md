@@ -31,6 +31,8 @@ Nexus Comm-Link is more than a mobility tool; it is a **semantic screen-reader**
 2. **Tactical Commands**: Allows interaction with complex IDE components through voice that otherwise lack clear screen-reader support.
 3. **Inclusive Workspace**: Breaks the "single screen" barrier, allowing haptic and audio-driven development sessions.
 
+For a full breakdown of voice-first and eyes-optional workflows, see [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
 ---
 
 ## Technical Architecture
@@ -111,6 +113,14 @@ To verify the integration and the **Gemini Multimodal Live** connection, follow 
 - [Security Policy](SECURITY.md) - Vulnerability reporting and security model.
 - [Design Philosophy](DESIGN_PHILOSOPHY.md) - Project rationale and design decisions.
 - [Task Tracker](TASKS.md) - Development roadmap.
+- [Accessibility Profile](ACCESSIBILITY.md) - Voice-first and eyes-optional workflows.
+
+---
+
+## Future Enhancements
+
+- **Monitoring Dashboard**: Real-time session telemetry (CDP status, snapshot heartbeat, action relay success/failure, Gemini live latency) exposed over WebSockets for optional visualization.
+- **Avatar Rendering**: Optional visual speech feedback synchronized to Gemini Live audio for users who benefit from expressive, multimodal voice interactions.
 
 ---
 

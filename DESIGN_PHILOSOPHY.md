@@ -48,6 +48,13 @@ The mobile UI now features a **Full-screen History Layer**. This design choice r
 - **Bi-directional Sync**: If you change the model on your Desktop, your phone updates automatically. The goal is for both devices to feel like parts of the same "brain".
 - **🔒 Secure Connection**: HTTPS support removes the browser warning icon, making the experience feel more professional and trustworthy.
 
+## Extensibility (Optional Layers, Not Core Dependencies)
+
+Nexus Comm-Link is intentionally modular: the core loop (CDP grounding + Gemini Live + action relay) stands on its own, while optional layers can be added without changing the foundation:
+
+- **Monitoring dashboard**: the bridge already produces structured events (connection state, snapshot heartbeats, tool/action outcomes) that can be streamed over WebSockets and visualized in an optional dashboard UI.
+- **Avatar rendering**: the mobile client already receives low-latency audio output from Gemini Live; an optional avatar layer can synchronize expressions/mouth motion to enhance multimodal feedback for users who benefit from visual cues.
+
 ## Technical Trade-offs
 
 | Decision | Rationale |
