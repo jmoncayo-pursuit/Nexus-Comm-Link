@@ -2031,9 +2031,10 @@ class NexusVoice {
             this.processor.onaudioprocess = (e) => {
                 if (!this.isActive || !this.isReady) return;
 
-                // Mute during greeting playback to prevent echo/self-interrupt
+                // Mute only during initial greeting to prevent self-trigger,
+                // but ALLOW transmission during conversation for Barge-In detection.
                 const sessionDuration = Date.now() - (window.voiceSessionStart || 0);
-                if (sessionDuration < 3500 || this.activeSources.length > 0) return;
+                if (sessionDuration < 2500) return;
                 
                 const inputData = e.inputBuffer.getChannelData(0);
                 

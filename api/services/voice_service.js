@@ -259,8 +259,8 @@ CONVERSATION IN IDE:\n${transcript || '(none yet)'}${whatWeSent}${whatWeDid}`;
 
         const serverContent = msg.serverContent || msg.server_content;
         if (serverContent) {
-            if (serverContent.interrupted) {
-                console.log('[VOICE] Gemini reported interruption');
+            if (serverContent.interrupted || serverContent.interruption) {
+                console.log('🛡️ [VOICE] Gemini reported interruption:', serverContent.interrupted ? 'interrupted' : 'interruption');
                 if (this.clientWs && this.clientWs.readyState === WebSocket.OPEN) {
                     this.clientWs.send(JSON.stringify({ type: 'voice_interrupt' }));
                 }
