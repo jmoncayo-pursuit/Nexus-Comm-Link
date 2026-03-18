@@ -109,31 +109,40 @@ export class VoiceService {
                         }
                     }
                 },
+                realtimeInputConfig: {
+                    automaticActivityDetection: {
+                        voiceActivityDetection: {
+                            config: {
+                                silenceDetectionThreshold: 0.1
+                            }
+                        }
+                    }
+                },
                 systemInstruction: {
                     parts: [{
-                        text: `You are the eyes for a blind software engineer. Your purpose is to provide situational awareness and collaborative pair-programming.
-Your eyes are a 1 FPS live stream of the IDE. Describe changes, errors, and UI layouts as they happen.
+                        text: `You are the collaborative eyes for a blind software engineer. Your purpose is providing deep situational awareness and brainstorming support.
+Your eyes are a 1 FPS live stream of the IDE. Vividly describe code, UI, and console output.
 
-BRAINSTORMING & RUBBER-DUCKING:
-- The user will often "rubber-duck" or brainstorm concepts with you.
-- During these times, be conversational, descriptive, and helpful. Do NOT execute tools or push code during a brainstorming session.
-- Only execute tools (injectMessage, clickActionButton, triggerUndo) when the user gives a firm, imperative command (e.g., "Push it now," "Apply that fix," "Run the tests").
+MISSION:
+- You are here to COLLABORATE. Brainstorm and "rubber-duck" ideas freely.
+- Stay conversational and descriptive. Do NOT execute tools or "jump the gun" just because an idea is mentioned.
+- Only use tools (injectMessage, clickActionButton, triggerUndo) when the user gives a direct, imperative order (e.g., "Push it," "Execute this," "Confirm apply").
+- If unsure, ask: "Should we proceed with that now?"
 
-BARGE-IN & CONVERSATION:
-- If the user speaks while you are talking, you should be configured to stop immediately (Barge-In).
-- Keep your verbal descriptions vivid but efficient. Focus on what is changing on the screen or in the console.
-- After a tool action: Stay silent and watch the screen for results to describe.`
+BARGE-IN / INTERRUPTION:
+- You are configured for technical Barge-In. If the user starts talking, you must cease audio immediately. 
+- Prioritize listening. The user's input is the primary driver of all sessions.`
                     }]
                 },
                 tools: [{
                     function_declarations: [
                         {
                             name: "injectMessage",
-                            description: "Sends text/code to the IDE. ONLY use when the user gives a direct imperative command after brainstorming.",
+                            description: "Sends text/code to the IDE. Convert intent (e.g., 'push' -> 'git push'). ONLY execute on explicit command.",
                             parameters: {
                                 type: "OBJECT",
                                 properties: {
-                                    message: { type: "STRING", description: "The literal message or command to send." }
+                                    message: { type: "STRING", description: "The message or command to send." }
                                 },
                                 required: ["message"]
                             }
@@ -368,23 +377,31 @@ CONVERSATION IN IDE:\n${transcript || '(none yet)'}${whatWeSent}${whatWeDid}`;
 
         if (this.geminiWs && this.geminiWs.readyState === WebSocket.OPEN) {
             this.geminiWs.send(JSON.stringify({
-                toolResponse: { functionResponses: responses }
+                toolResponse: { functionResponses: responses },
+                tool_response: { function_responses: responses } // Dual-path safety
             }));
 
-            const anyInjectOk = responses.some(r => r.response?.ok === true);
-            if (anyInjectOk) {
+            const anyActionOk = responses.some(r => r.response?.ok === true || r.response?.status === 'success');
+            if (anyActionOk) {
+                // GROUNDING: Trigger an immediate snapshot so the model 'sees' the result of its action.
+                setTimeout(() => {
+                    const latest = this.bridgeService.getLastSnapshot();
+                    this.sendSnapshot(latest).catch(() => {});
+                }, 1200);
+
+                // Small conversational nudge
                 setTimeout(() => {
                     if (!this.geminiWs || this.geminiWs.readyState !== WebSocket.OPEN) return;
                     this.geminiWs.send(JSON.stringify({
                         clientContent: {
                             turns: [{
                                 role: "user",
-                                parts: [{ text: "[SUCCESS] injectMessage succeeded. The message was sent to the IDE. Say 'Done.' only. Do not say you weren't able to." }]
+                                parts: [{ text: "[SUCCESS] Action completed. Check the latest IDE CONTEXT snapshot to see the result." }]
                             }],
                             turnComplete: true
                         }
                     }));
-                }, 100);
+                }, 1500);
             }
         }
     }
