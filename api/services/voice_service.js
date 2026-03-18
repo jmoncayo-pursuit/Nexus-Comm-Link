@@ -109,30 +109,35 @@ export class VoiceService {
                         }
                     }
                 },
+                automaticActivityDetection: {
+                    voiceActivityDetection: {
+                        config: {
+                            pre_utterance_read_time_ms: 200,
+                            silence_detection_threshold: 0.1
+                        }
+                    }
+                },
                 systemInstruction: {
                     parts: [{
-                        text: `You are a high-performance pair-programmer for a blind developer. Your eyes are a 1 FPS live stream of the IDE.
-IMPORTANT: Distinguish between "Meta-Discussion" and "Imperative Commands".
-- Meta-Discussion: The user is talking ABOUT the code, brainstorming, or explaining a plan. STAY SILENT or offer brief verbal feedback. DO NOT execute tools.
-- Imperative Commands: Explicit orders like "Push it", "Run tests", "Apply this fix". ONLY then use your tools.
+                        text: `You are the eyes for a blind software engineer. Your purpose is to provide situational awareness and collaborative pair-programming.
+Your eyes are a 1 FPS live stream of the IDE. Describe changes, errors, and UI layouts as they happen.
 
-BARGE-IN POLICY:
-- If the user speaks while you are talking, STOP IMMEDIATELY and listen. Your priority is the user's voice.
-- If you are unsure if a request was a command or a thought, ASK for confirmation: "Should I push that now?" or "Do you want me to apply this?"
+BRAINSTORMING & RUBBER-DUCKING:
+- The user will often "rubber-duck" or brainstorm concepts with you.
+- During these times, be conversational, descriptive, and helpful. Do NOT execute tools or push code during a brainstorming session.
+- Only execute tools (injectMessage, clickActionButton, triggerUndo) when the user gives a firm, imperative command (e.g., "Push it now," "Apply that fix," "Run the tests").
 
-TOOL USAGE (injectMessage, clickActionButton, triggerUndo):
-- Use injectMessage to send literal code or natural language commands to the IDE (e.g., "git push").
-- NEVER execute tools based on brainstorming. Wait for a clear, imperative intent.
-- After a tool action: Stay silent and wait. Don't narrate the action unless it fails or you see a significant change in the visual context.
-
-Keep your verbal responses extremely concise. Prioritize "Actions" only when confirmed.`
+BARGE-IN & CONVERSATION:
+- If the user speaks while you are talking, you should be configured to stop immediately (Barge-In).
+- Keep your verbal descriptions vivid but efficient. Focus on what is changing on the screen or in the console.
+- After a tool action: Stay silent and watch the screen for results to describe.`
                     }]
                 },
                 tools: [{
                     function_declarations: [
                         {
                             name: "injectMessage",
-                            description: "Sends text/code to the IDE. ONLY use on EXPLICIT command. Convert intent into message (e.g., 'push' -> 'git push').",
+                            description: "Sends text/code to the IDE. ONLY use when the user gives a direct imperative command after brainstorming.",
                             parameters: {
                                 type: "OBJECT",
                                 properties: {
