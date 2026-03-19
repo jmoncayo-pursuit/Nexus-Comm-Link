@@ -16,8 +16,10 @@ This document tracks the evolution of the Nexus Comm-Link from a prototype to a 
 - [ ] **Configuration Portal**: Create a web interface for managing server settings, authentication tokens, and theme preferences.
 
 ### 🧩 Future Polish
+- [ ] **Post-Action Grounding Confirmation**: Implement a "Confirmation Turn" that immediately pushes a new vision frame and text snapshot to Gemini 800ms after a tool call, ensuring the agent knows exactly what changed in the IDE UI.
 - [ ] **Barge-In Refinement**: Improve Voice Activity Detection (VAD) accuracy to ensure seamless user interruption in high-noise or high-latency environments.
 - [ ] **Hyper-Grounding Loop**: Further minimize the latency between AI actions and "visual confirmation" to perfectly synchronize the agent's memory with the IDE's current state.
+
 
 ### 🎨 AI-Native Design & Prototyping
 - [ ] **Google Stitch Integration**: Leverage [Stitch](https://stitch.withgoogle.com/) for rapid "Vibe Design" iterations, allowing generative AI to evolve the mobile interface and bridge components from natural language descriptions and sketches.
