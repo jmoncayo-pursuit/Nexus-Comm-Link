@@ -19,6 +19,9 @@ This document tracks the evolution of the Nexus Comm-Link from a prototype to a 
 - [ ] **Barge-In Refinement**: Improve Voice Activity Detection (VAD) accuracy to ensure seamless user interruption in high-noise or high-latency environments.
 - [ ] **Hyper-Grounding Loop**: Further minimize the latency between AI actions and "visual confirmation" to perfectly synchronize the agent's memory with the IDE's current state.
 
+### 🎨 AI-Native Design & Prototyping
+- [ ] **Google Stitch Integration**: Leverage [Stitch](https://stitch.withgoogle.com/) for rapid "Vibe Design" iterations, allowing generative AI to evolve the mobile interface and bridge components from natural language descriptions and sketches.
+
 ---
 
 ## ✅ Completed Milestones

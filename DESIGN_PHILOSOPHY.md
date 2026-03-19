@@ -48,6 +48,9 @@ The mobile UI now features a **Full-screen History Layer**. This design choice r
 - **Bi-directional Sync**: If you change the model on your Desktop, your phone updates automatically. The goal is for both devices to feel like parts of the same "brain".
 - **🔒 Secure Connection**: HTTPS support removes the browser warning icon, making the experience feel more professional and trustworthy.
 
+### 6. Generative UI Evolution
+The Nexus Comm-Link is an AI-first tool, and its interface should reflect that. We leverage **AI-Native Design (via Google Stitch)** to rapidly iterate on the mobile experience. Instead of manual pixel-pushing, we use generative prototyping to evolve our "Glassmorphism" components and layout transitions, ensuring the bridge UI remains as fluid and intelligent as the multimodal models powering it.
+
 ## Extensibility (Optional Layers, Not Core Dependencies)
 
 Nexus Comm-Link is intentionally modular: the core loop (CDP grounding + Gemini Live + action relay) stands on its own, while optional layers can be added without changing the foundation:
