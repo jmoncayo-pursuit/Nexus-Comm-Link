@@ -828,10 +828,17 @@ textarea::-webkit-scrollbar {
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 6px;
+    max-width: 180px;
+}
+.setting-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .setting-chip:active {

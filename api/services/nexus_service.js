@@ -672,9 +672,12 @@ export async function getAppState(cdp) {
             
             for (const sel of candidateSelectors) {
                 const el = document.querySelector(sel);
-                if (el) {
+                if (el && el.offsetHeight > 0) {
                     let txt = el.innerText.trim();
-                    if (txt.toLowerCase().includes('signing') || txt.toLowerCase().includes('loading') || txt.toLowerCase().includes('checking')) continue;
+                    // IGNORE STATUS MESSAGES: Model names are usually short. 
+                    // If it contains "...", "Checking", "Wait", or is > 30 chars, it's likely a toast/status.
+                    if (txt.length > 30 || txt.includes('...') || /\b(Checking|Wait|Loading|Running|Saving|Signing)\b/i.test(txt)) continue;
+                    
                     if (modelKeywords.some(k => txt.includes(k))) {
                         model = txt;
                         break;
@@ -686,8 +689,8 @@ export async function getAppState(cdp) {
                 const allEls = Array.from(document.querySelectorAll('*'));
                 const modelEl = allEls.find(el => {
                     const txt = (el.innerText || '').trim();
-                    if (txt.toLowerCase().includes('signing') || txt.toLowerCase().includes('loading') || txt.toLowerCase().includes('checking')) return false;
-                    return el.children.length === 0 && txt.length < 30 && modelKeywords.some(k => txt.includes(k)) && 
+                    if (txt.length > 25 || txt.includes('...') || /\b(Checking|Wait|Loading|Running|Saving|Signing)\b/i.test(txt)) return false;
+                    return el.children.length === 0 && modelKeywords.some(k => txt.includes(k)) && 
                            !txt.includes('/') && !txt.includes('*') && !txt.includes('{');
                 });
                 if (modelEl) model = modelEl.innerText.trim();
