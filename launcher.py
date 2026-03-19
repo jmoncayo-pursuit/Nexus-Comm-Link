@@ -31,11 +31,15 @@ def check_dependencies():
     if missing:
         print(f"📦 Installing missing dependencies: {', '.join(missing)}...")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages"] + missing)
             print("✅ Dependencies installed.\n")
         except Exception as e:
-            print(f"❌ Failed to install dependencies: {e}")
-            sys.exit(1)
+            # Try without flag just in case old pip
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+            except:
+                print(f"❌ Failed to install dependencies: {e}")
+                sys.exit(1)
 
 def check_node_environment():
     """Checks for Node.js and installs npm dependencies if needed."""
@@ -250,7 +254,15 @@ def main():
             addr = f"{protocol}://localhost:{port}"
             
             print("PLEASE WAIT... Establishing Tunnel...")
-            tunnel = ngrok.connect(addr, host_header="rewrite")
+            
+            # Persistent Domain Support
+            fixed_domain = os.environ.get('NGROK_DOMAIN')
+            if fixed_domain:
+                print(f"📡 Requesting persistent domain: {fixed_domain}")
+                tunnel = ngrok.connect(addr, domain=fixed_domain, host_header="rewrite")
+            else:
+                tunnel = ngrok.connect(addr, host_header="rewrite")
+            
             public_url = tunnel.public_url
             
             # Magic URL with password
@@ -287,8 +299,16 @@ def main():
             
             # Check process status
             if node_process.poll() is not None:
-                print("\n❌ Server process died unexpectedly!")
-                sys.exit(1)
+                print("\n❌ Server process died unexpectedly! Attempting restart...")
+                time.sleep(2)
+                node_process = subprocess.Popen(
+                    node_cmd, 
+                    shell=is_windows, 
+                    stdout=log_file if log_file else None, 
+                    stderr=log_file if log_file else None, 
+                    env=os.environ.copy()
+                )
+                continue
                 
             # Monitor logs for errors
             try:

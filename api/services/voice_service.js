@@ -434,8 +434,8 @@ CONVERSATION IN IDE:\n${transcript || '(none yet)'}${whatWeSent}${whatWeDid}`;
                 const cdp = this.bridgeService.getConnection();
                 if (cdp) {
                     const screenshot = await captureScreenshot(cdp);
-                    if (screenshot && screenshot.data) {
-                        // console.log('[VOICE] Vision frame sent');
+                    if (screenshot && screenshot.data && this.geminiWs) {
+                        // Double check geminiWs is still there after the await
                         const msg = {
                             realtimeInput: {
                                 video: {

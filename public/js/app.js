@@ -360,6 +360,7 @@ async function loadSnapshot(force = false) {
             '    position: relative !important;\n' +
             '    height: auto !important;\n' +
             '    width: 100% !important;\n' +
+            '    display: block !important;\n' +
             '    padding-bottom: 0px !important;\n' +
             '    margin-bottom: 0px !important;\n' +
             '}\n' +
@@ -367,22 +368,16 @@ async function loadSnapshot(force = false) {
             '    margin-bottom: 0 !important;\n' +
             '    padding-bottom: 0 !important;\n' +
             '}\n' +
-            '/* Kill scroll spacers and empty bottom anchors */\n' +
-            '#conversation > div[style*="height"], #chat > div[style*="height"], #cascade > div[style*="height"] {\n' +
-            '    height: 0 !important;\n' +
-            '    min-height: 0 !important;\n' +
-            '    max-height: 0 !important;\n' +
-            '    overflow: hidden !important;\n' +
+            '/* Clean up empty containers which cause "ghost gaps" */\n' +
+            '#conversation div:empty, #chat div:empty, #cascade div:empty {\n' +
+            '    display: none !important;\n' +
             '}\n' +
             '\n' +
-            '/* Fix stacking BUT preserve absolute/fixed positioning for dropdowns */\n' +
-            '#conversation > div, #chat > div, #cascade > div {\n' +
-            '    position: static !important;\n' +
-            '}\n' +
-            '/* Preserve absolute positioning needed for dropdowns, tooltips, popups */\n' +
-            '[style*="position: absolute"], [style*="position: fixed"],\n' +
-            '[data-headlessui-state], [id*="headlessui"] {\n' +
-            '    position: absolute !important;\n' +
+            '/* PREVENT VERTICAL WORD-STACKING: All containers should prefer 100% width on Mobile */\n' +
+            '#conversation div, #chat div, #cascade div, #conversation span, #chat span, #cascade span {\n' +
+            '    min-width: 0 !important;\n' +
+            '    word-break: normal !important;\n' +
+            '    overflow-wrap: break-word !important;\n' +
             '}\n' +
             '\n' +
             '/* Annihilate invisible scroll anchors */\n' +
@@ -390,14 +385,13 @@ async function loadSnapshot(force = false) {
             '    display: none !important;\n' +
             '}\n' +
             '\n' +
-            '\n' +
             '#conversation p, #chat p, #cascade p, #conversation h1, #chat h1, #cascade h1, #conversation h2, #chat h2, #cascade h2, #conversation h3, #chat h3, #cascade h3, #conversation h4, #chat h4, #cascade h4, #conversation h5, #chat h5, #cascade h5, #conversation span, #chat span, #cascade span, #conversation div, #chat div, #cascade div, #conversation li, #chat li, #cascade li {\n' +
             '    color: inherit !important;\n' +
             '}\n' +
             '\n' +
-            '/* Force black inline text to white */\n' +
+            '/* Force black/dark inline text to white for clarity */\n' +
             '[style*="color: rgb(0, 0, 0)"], [style*="color: black"],\n' +
-            '[style*="color:#000"], [style*="color: #000"] {\n' +
+            '[style*="color:#000"], [style*="color: #000"], [style*="color: rgb(3"] {\n' +
             '    color: #e2e8f0 !important;\n' +
             '}\n' +
             '\n' +

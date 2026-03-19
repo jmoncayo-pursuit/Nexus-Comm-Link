@@ -15,6 +15,10 @@ This document tracks the evolution of the Nexus Comm-Link from a prototype to a 
 - [ ] **Marker Navigation**: Add the ability to quickly jump to specific messages or system milestones via a navigation menu.
 - [ ] **Configuration Portal**: Create a web interface for managing server settings, authentication tokens, and theme preferences.
 
+### 🧩 Future Polish
+- [ ] **Barge-In Refinement**: Improve Voice Activity Detection (VAD) accuracy to ensure seamless user interruption in high-noise or high-latency environments.
+- [ ] **Hyper-Grounding Loop**: Further minimize the latency between AI actions and "visual confirmation" to perfectly synchronize the agent's memory with the IDE's current state.
+
 ---
 
 ## ✅ Completed Milestones

@@ -129,10 +129,9 @@ The current implementation already enables meaningful accessibility use cases, b
      - mark important controls and regions with semantic labels
      - further reduce ambiguity for the agent.
 
-4. **Documentation and tutorials**
-   - Provide step-by-step guides for:
-     - configuring the system with screen readers
-     - running a “voice-only” coding session.
+5. **Enhanced Barge-in and Grounding**
+   - High-precision VAD (Voice Activity Detection) tuning for seamless interruptions during brainstorming.
+   - Reduced latency in the "Action → Awareness" loop to ensure the agent never loses its place.
 
 Contributions and suggestions from developers with disabilities are especially welcome; the goal is to evolve Nexus Comm-Link into a tool that meaningfully lowers barriers to professional development work.
 
